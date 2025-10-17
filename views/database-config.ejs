@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Database Configuration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: #4285f4;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: bold;
+        }
+
+        select,
+        input[type="text"],
+        input[type="password"],
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .credential-fields {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .submit-btn {
+            background-color: #4285f4;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+
+        .submit-btn:hover {
+            background-color: #357abd;
+        }
+
+        .info-text {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="/">← Home</a>
+            <a href="/profile">Profile</a>
+            <a href="/auth/logout">Logout</a>
+        </div>
+
+        <h1>Configure Your Database</h1>
+
+        <form action="/database/configure" method="POST">
+            <div class="form-group">
+                <label for="dbType">Select Database Type:</label>
+                <select id="dbType" name="dbType" required onchange="updateCredentialFields()">
+                    <option value="">-- Select Database --</option>
+                    <option value="mysql">MySQL</option>
+                    <option value="postgresql">PostgreSQL</option>
+                    <option value="mssql">Microsoft SQL Server</option>
+                    <option value="mongodb">MongoDB</option>
+                    <option value="mongodb-atlas">MongoDB Atlas (Cloud)</option>
+                    <option value="firebase">Firebase</option>
+                    <option value="supabase">Supabase</option>
+                    <option value="aws-rds">AWS RDS</option>
+                    <option value="digitalocean">DigitalOcean Managed Database</option>
+                </select>
+            </div>
+
+            <!-- MySQL / PostgreSQL / MSSQL Fields -->
+            <div id="sql-fields" class="credential-fields hidden">
+                <div class="form-group">
+                    <label for="host">Host:</label>
+                    <input type="text" id="sql-host" name="host" placeholder="localhost">
+                    <p class="info-text">Database server address</p>
+                </div>
+                <div class="form-group">
+                    <label for="port">Port:</label>
+                    <input type="number" id="sql-port" name="port" placeholder="3306">
+                </div>
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="sql-username" name="username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="sql-password" name="password">
+                </div>
+                <div class="form-group">
+                    <label for="database">Database Name (Optional):</label>
+                    <input type="text" id="sql-database" name="database"
+                        placeholder="Leave empty to list all databases">
+                </div>
+            </div>
+
+            <!-- MongoDB Local Fields -->
+            <div id="mongodb-fields" class="credential-fields hidden">
+                <div class="form-group">
+                    <label for="mongo-host">Host:</label>
+                    <input type="text" id="mongo-host" name="host" placeholder="localhost">
+                </div>
+                <div class="form-group">
+                    <label for="mongo-port">Port:</label>
+                    <input type="number" id="mongo-port" name="port" placeholder="27017">
+                </div>
+                <div class="form-group">
+                    <label for="mongo-username">Username (Optional):</label>
+                    <input type="text" id="mongo-username" name="username">
+                </div>
+                <div class="form-group">
+                    <label for="mongo-password">Password (Optional):</label>
+                    <input type="password" id="mongo-password" name="password">
+                </div>
+                <div class="form-group">
+                    <label for="mongo-database">Database Name (Optional):</label>
+                    <input type="text" id="mongo-database" name="database">
+                </div>
+            </div>
+
+            <!-- MongoDB Atlas Fields -->
+            <div id="mongodb-atlas-fields" class="credential-fields hidden">
+                <div class="form-group">
+                    <label for="atlas-connection-string">Connection String:</label>
+                    <input type="text" id="atlas-connection-string" name="connectionString"
+                        placeholder="mongodb+srv://username:password@cluster.mongodb.net/">
+                    <p class="info-text">Get this from MongoDB Atlas dashboard</p>
+                </div>
+            </div>
+
+            <!-- Firebase Fields -->
+            <div id="firebase-fields" class="credential-fields hidden">
+                <div class="form-group">
+                    <label for="firebase-project-id">Project ID:</label>
+                    <input type="text" id="firebase-project-id" name="projectId">
+                </div>
+                <div class="form-group">
+                    <label for="firebase-service-account">Service Account JSON:</label>
+                    <textarea id="firebase-service-account" name="serviceAccount" rows="6"
+                        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;"
+                        placeholder='Paste your Firebase service account JSON here'></textarea>
+                    <p class="info-text">Download from Firebase Console → Project Settings → Service Accounts</p>
+                </div>
+            </div>
+
+            <!-- Supabase Fields -->
+            <div id="supabase-fields" class="credential-fields hidden">
+                <div class="form-group">
+                    <label for="supabase-url">Supabase URL:</label>
+                    <input type="text" id="supabase-url" name="supabaseUrl" placeholder="https://xxxxx.supabase.co">
+                </div>
+                <div class="form-group">
+                    <label for="supabase-key">Supabase Anon/Service Key:</label>
+                    <input type="password" id="supabase-key" name="supabaseKey">
+                    <p class="info-text">Get from Supabase Dashboard → Settings → API</p>
+                </div>
+                <div class="form-group">
+                    <label for="supabase-password">Database Password (Optional for direct access):</label>
+                    <input type="password" id="supabase-password" name="supabasePassword">
+                    <p class="info-text">Only needed for direct PostgreSQL access</p>
+                </div>
+            </div>
+
+            <!-- AWS RDS Fields -->
+            <div id="aws-rds-fields" class="credential-fields hidden">
+                <div class="form-group">
+                    <label for="aws-engine">Database Engine:</label>
+                    <select id="aws-engine" name="awsEngine">
+                        <option value="mysql">MySQL</option>
+                        <option value="postgresql">PostgreSQL</option>
+                        <option value="mssql">SQL Server</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="aws-endpoint">RDS Endpoint:</label>
+                    <input type="text" id="aws-endpoint" name="endpoint"
+                        placeholder="mydb.123456789.us-east-1.rds.amazonaws.com">
+                </div>
+                <div class="form-group">
+                    <label for="aws-port">Port:</label>
+                    <input type="number" id="aws-port" name="port" placeholder="3306">
+                </div>
+                <div class="form-group">
+                    <label for="aws-username">Master Username:</label>
+                    <input type="text" id="aws-username" name="username">
+                </div>
+                <div class="form-group">
+                    <label for="aws-password">Master Password:</label>
+                    <input type="password" id="aws-password" name="password">
+                </div>
+                <div class="form-group">
+                    <label for="aws-database">Database Name (Optional):</label>
+                    <input type="text" id="aws-database" name="database">
+                </div>
+            </div>
+
+            <!-- DigitalOcean Fields -->
+            <div id="digitalocean-fields" class="credential-fields hidden">
+                <div class="form-group">
+                    <label for="do-engine">Database Engine:</label>
+                    <select id="do-engine" name="doEngine">
+                        <option value="mysql">MySQL</option>
+                        <option value="postgresql">PostgreSQL</option>
+                        <option value="mongodb">MongoDB</option>
+                        <option value="redis">Redis</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="do-host">Host:</label>
+                    <input type="text" id="do-host" name="host"
+                        placeholder="db-mysql-nyc1-12345-do-user-1234567-0.b.db.ondigitalocean.com">
+                    <p class="info-text">Get from DigitalOcean Dashboard → Databases → Connection Details</p>
+                </div>
+                <div class="form-group">
+                    <label for="do-port">Port:</label>
+                    <input type="number" id="do-port" name="port" placeholder="25060">
+                </div>
+                <div class="form-group">
+                    <label for="do-username">Username:</label>
+                    <input type="text" id="do-username" name="username" placeholder="doadmin">
+                </div>
+                <div class="form-group">
+                    <label for="do-password">Password:</label>
+                    <input type="password" id="do-password" name="password">
+                    <p class="info-text">Found in Connection Details section</p>
+                </div>
+                <div class="form-group">
+                    <label for="do-database">Database Name (Optional):</label>
+                    <input type="text" id="do-database" name="database" placeholder="defaultdb">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="do-ssl" name="sslRequired" value="true" checked>
+                        Require SSL Connection (Recommended)
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">Connect & Scan Databases</button>
+        </form>
+    </div>
+
+    <script>
+        function updateCredentialFields() {
+            const dbType = document.getElementById('dbType').value;
+            const allFields = document.querySelectorAll('.credential-fields');
+
+            // Hide all fields first and disable inputs
+            allFields.forEach(field => {
+                field.classList.add('hidden');
+                const inputs = field.querySelectorAll('input, textarea, select');
+                inputs.forEach(input => {
+                    input.disabled = true;
+                    input.removeAttribute('required');
+                });
+            });
+
+            // Show relevant fields based on selection and enable inputs
+            let activeFieldId = '';
+            switch (dbType) {
+                case 'mysql':
+                    activeFieldId = 'sql-fields';
+                    document.getElementById('sql-port').value = '3306';
+                    break;
+                case 'postgresql':
+                    activeFieldId = 'sql-fields';
+                    document.getElementById('sql-port').value = '5432';
+                    break;
+                case 'mssql':
+                    activeFieldId = 'sql-fields';
+                    document.getElementById('sql-port').value = '1433';
+                    break;
+                case 'mongodb':
+                    activeFieldId = 'mongodb-fields';
+                    break;
+                case 'mongodb-atlas':
+                    activeFieldId = 'mongodb-atlas-fields';
+                    break;
+                case 'firebase':
+                    activeFieldId = 'firebase-fields';
+                    break;
+                case 'supabase':
+                    activeFieldId = 'supabase-fields';
+                    break;
+                case 'aws-rds':
+                    activeFieldId = 'aws-rds-fields';
+                    break;
+                case 'digitalocean':
+                    activeFieldId = 'digitalocean-fields';
+                    document.getElementById('do-port').value = '25060';
+                    break;
+            }
+
+            // Enable the active field
+            if (activeFieldId) {
+                const activeField = document.getElementById(activeFieldId);
+                activeField.classList.remove('hidden');
+                const inputs = activeField.querySelectorAll('input:not([type="checkbox"]), textarea, select');
+                inputs.forEach(input => {
+                    input.disabled = false;
+                    // Add required attribute to critical fields
+                    if (input.id.includes('host') || input.id.includes('username') ||
+                        input.id.includes('password') || input.id.includes('connection') ||
+                        input.id.includes('url') || input.id.includes('key') ||
+                        input.id.includes('project') || input.id.includes('endpoint')) {
+                        input.setAttribute('required', 'required');
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+
+</html>

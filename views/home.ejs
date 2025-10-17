@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Google Authentication</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+
+        .nav a {
+            margin-left: 10px;
+            text-decoration: none;
+            color: #4285f4;
+        }
+
+        .welcome {
+            margin-top: 50px;
+        }
+
+        .google-btn {
+            display: inline-block;
+            background-color: #4285f4;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="nav">
+            <% if(user) { %>
+                <a href="/profile">Profile</a>
+                <a href="/auth/logout">Logout</a>
+                <% } else { %>
+                    <a href="/auth/login">Login</a>
+                    <% } %>
+        </div>
+
+        <div class="welcome">
+            <h1>Welcome to NLP to SQL</h1>
+            <p>Query your database using natural language</p>
+            <% if(!user) { %>
+                <p>Please login to continue</p>
+                <a href="/auth/login" class="google-btn">Login</a>
+                <% } else { %>
+                    <a href="/database/config" class="google-btn">Configure Database</a>
+                    <% } %>
+        </div>
+    </div>
+</body>
+
+</html>

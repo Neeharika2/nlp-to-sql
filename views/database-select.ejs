@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Select Database</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: #4285f4;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .db-info {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .db-list {
+            margin-top: 20px;
+        }
+
+        .db-item {
+            background-color: #fff;
+            border: 2px solid #ddd;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .db-item:hover {
+            border-color: #4285f4;
+            background-color: #f0f7ff;
+        }
+
+        .db-item.selected {
+            border-color: #4285f4;
+            background-color: #e3f2fd;
+        }
+
+        .db-item h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        .db-item p {
+            margin: 5px 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .continue-btn {
+            background-color: #4285f4;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+
+        .continue-btn:hover {
+            background-color: #357abd;
+        }
+
+        .continue-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .reconfigure-btn {
+            background-color: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="/">← Home</a>
+            <a href="/profile">Profile</a>
+            <a href="/auth/logout">Logout</a>
+        </div>
+
+        <h1>Select Database to Query</h1>
+
+        <div class="success-message">
+            ✓ Successfully connected to <%= dbType.toUpperCase() %>!
+        </div>
+
+        <div class="db-info">
+            <strong>Connection Details:</strong>
+            <p>Database Type: <%= dbType %>
+            </p>
+            <% if (host) { %>
+                <p>Host: <%= host %>
+                </p>
+                <% } %>
+        </div>
+
+        <h2>Available Databases:</h2>
+
+        <% if (databases && databases.length> 0) { %>
+            <form action="/database/select" method="POST">
+                <input type="hidden" name="dbType" value="<%= dbType %>">
+                <div class="db-list">
+                    <% databases.forEach((db, index)=> { %>
+                        <label>
+                            <div class="db-item" onclick="selectDatabase(this, '<%= db.name %>')">
+                                <input type="radio" name="selectedDatabase" value="<%= db.name %>"
+                                    style="display: none;" required>
+                                <h3>
+                                    <%= db.name %>
+                                </h3>
+                                <% if (db.tables) { %>
+                                    <p>Tables/Collections: <%= db.tables %>
+                                    </p>
+                                    <% } %>
+                                        <% if (db.size) { %>
+                                            <p>Size: <%= db.size %>
+                                            </p>
+                                            <% } %>
+                            </div>
+                        </label>
+                        <% }); %>
+                </div>
+                <button type="submit" class="continue-btn" id="continueBtn" disabled>Continue to Query
+                    Interface</button>
+            </form>
+            <% } else { %>
+                <p>No databases found. Please check your credentials.</p>
+                <% } %>
+
+                    <br>
+                    <a href="/database/config" class="reconfigure-btn">← Reconfigure Database</a>
+    </div>
+
+    <script>
+        function selectDatabase(element, dbName) {
+            // Remove selected class from all items
+            document.querySelectorAll('.db-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+
+            // Add selected class to clicked item
+            element.classList.add('selected');
+
+            // Check the radio button
+            element.querySelector('input[type="radio"]').checked = true;
+
+            // Enable continue button
+            document.getElementById('continueBtn').disabled = false;
+        }
+    </script>
+</body>
+
+</html>
