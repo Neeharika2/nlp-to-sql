@@ -62,6 +62,7 @@ app.use('/query', queryRoutes);
 // Middleware to check if user is logged in
 const isLoggedIn = (req, res, next) => {
   if (req.user) {
+    // Everyone is admin - no role assignment needed
     next();
   } else {
     console.log('Unauthorized access attempt to protected route');

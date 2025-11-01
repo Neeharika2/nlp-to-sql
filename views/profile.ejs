@@ -51,6 +51,40 @@
             text-decoration: none;
             margin-top: 20px;
         }
+
+        .role-badge {
+            display: inline-block;
+            background-color: #4CAF50;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .permissions {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+        }
+
+        .permissions ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .permissions li {
+            margin: 5px 0;
+        }
+
+        .allowed {
+            color: #4CAF50;
+        }
+
+        .blocked {
+            color: #f44336;
+        }
     </style>
 </head>
 
@@ -72,6 +106,25 @@
                 </p>
                 <p>Google ID: <%= user.id %>
                 </p>
+                <span class="role-badge">ADMIN</span>
+
+                <div class="permissions">
+                    <h3>Your Access Permissions</h3>
+                    <ul>
+                        <li class="allowed">✓ Full access to all tables and views</li>
+                        <li class="allowed">✓ Can access regular data (names, emails, addresses, phones, etc.)</li>
+                        <li class="blocked">✗ Cannot access passwords or password hashes</li>
+                        <li class="blocked">✗ Cannot access credit card numbers or PCI data</li>
+                        <li class="blocked">✗ Cannot access SSN or social security numbers</li>
+                        <li class="blocked">✗ Cannot access API keys, tokens, or credentials</li>
+                    </ul>
+                    <p style="font-size: 12px; color: #666; margin-top: 10px;">
+                        <strong>Note:</strong> All sensitive data is blocked for security.
+                        When sensitive columns are requested, aggregate alternatives will be suggested.
+                        All queries are logged for audit purposes.
+                    </p>
+                </div>
+
                 <a href="/database/config" class="config-btn">Configure Database</a>
                 <% } %>
         </div>

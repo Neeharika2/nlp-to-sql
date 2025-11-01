@@ -5,10 +5,18 @@ const { Client: PgClient } = require('pg');
 const { MongoClient } = require('mongodb');
 const sql = require('mssql');
 const { createClient } = require('@supabase/supabase-js');
+const SecurityValidator = require('../utils/security-validator');
+const auditLogger = require('../utils/audit-logger');
+const { columnSecurity } = require('../config/security-config');
 
 // Middleware to check if user is authenticated
 const authCheck = (req, res, next) => {
   if (!req.isAuthenticated()) {
+    // For API requests (like from fetch), send a 401 Unauthorized error
+    if (req.xhr || (req.headers.accept && req.headers.accept.includes('json'))) {
+      return res.status(401).json({ success: false, error: 'Your session has expired. Please log in again.' });
+    }
+    // For browser navigation, redirect to login page
     return res.redirect('/auth/login');
   }
   next();
@@ -26,63 +34,239 @@ router.get('/', authCheck, (req, res) => {
   });
 });
 
-// Execute natural language query
+// Execute natural language query (Async with safety checks)
 router.post('/execute', authCheck, async (req, res) => {
+  const startTime = Date.now();
   const { nlQuery } = req.body;
   const dbConfig = req.session.dbConfig;
   const dbType = req.session.dbType;
   const selectedDatabase = req.session.selectedDatabase;
   
+  let originalSqlQuery = null;
+  let sanitizedQuery = null;
+
   if (!dbConfig || !dbType || !selectedDatabase) {
     return res.json({ success: false, error: 'Database not configured. Please configure your database first.' });
   }
   
+  // Input validation
+  if (!nlQuery || typeof nlQuery !== 'string' || nlQuery.trim().length === 0) {
+    return res.json({ success: false, error: 'Please provide a valid query.' });
+  }
+  
+  if (nlQuery.length > 1000) {
+    return res.json({ success: false, error: 'Query is too long. Maximum 1000 characters allowed.' });
+  }
+  
   try {
-    // Get database schema
+    // Get database schema (async)
     const schema = await getDatabaseSchema(dbType, dbConfig, selectedDatabase);
     
-    // Convert natural language to SQL using Gemini
-    const sqlQuery = await convertToSQL(nlQuery, schema, dbType);
+    // Convert natural language to SQL using Gemini (async)
+    originalSqlQuery = await convertToSQL(nlQuery, schema, dbType);
     
-    // Execute the query
-    const results = await executeQuery(sqlQuery, dbType, dbConfig, selectedDatabase);
+    // SECURITY: Validate SQL query for safety (dangerous operations)
+    const validation = validateSQLQuery(originalSqlQuery, dbType);
+    if (!validation.safe) {
+      await auditLogger.logQueryAttempt({
+        userId: req.user.id,
+        userEmail: req.user.email,
+        database: selectedDatabase,
+        dbType: dbType,
+        nlQuery: nlQuery,
+        originalSQL: originalSqlQuery,
+        status: 'blocked',
+        reason: validation.reason,
+        executionTime: Date.now() - startTime
+      });
+      
+      return res.json({ 
+        success: false, 
+        error: `Query validation failed: ${validation.reason}`,
+        sqlQuery: originalSqlQuery
+      });
+    }
+    
+    // SECURITY: Sanitize query to remove sensitive columns
+    const securityValidator = new SecurityValidator();
+    const sanitizationResult = securityValidator.sanitizeAndValidateQuery(originalSqlQuery, schema);
+    sanitizedQuery = sanitizationResult.sanitizedQuery;
+    
+    let responseWarnings = [];
+    if (sanitizationResult.blockedColumns.length > 0) {
+      const alternatives = securityValidator.generateSafeAlternatives(sanitizationResult.blockedColumns);
+      responseWarnings.push({
+        message: 'Some columns were blocked for security. Showing safe results instead.',
+        blockedColumns: sanitizationResult.blockedColumns,
+        suggestedAlternatives: alternatives
+      });
+    }
+
+    // Execute the sanitized query (async with timeout)
+    const results = await executeQueryWithTimeout(sanitizedQuery, dbType, dbConfig, selectedDatabase, 30000);
+    
+    // Log successful query
+    await auditLogger.logQueryAttempt({
+      userId: req.user.id,
+      userEmail: req.user.email,
+      database: selectedDatabase,
+      dbType: dbType,
+      nlQuery: nlQuery,
+      originalSQL: originalSqlQuery,
+      executedSQL: sanitizedQuery,
+      status: 'allowed',
+      warnings: responseWarnings,
+      rowsReturned: results.length,
+      executionTime: Date.now() - startTime
+    });
     
     res.json({
       success: true,
-      sqlQuery: sqlQuery,
-      results: results
+      sqlQuery: sanitizedQuery, // Show the executed query
+      originalSqlQuery: originalSqlQuery,
+      results: results,
+      warnings: responseWarnings.length > 0 ? responseWarnings : undefined,
+      executionTime: Date.now() - startTime
     });
   } catch (error) {
     console.error('Query execution error:', error);
+    
+    // Log error
+    await auditLogger.logQueryAttempt({
+      userId: req.user.id,
+      userEmail: req.user.email,
+      database: selectedDatabase,
+      dbType: dbType,
+      nlQuery: nlQuery,
+      originalSQL: originalSqlQuery || 'N/A',
+      executedSQL: sanitizedQuery || 'N/A',
+      status: 'error',
+      error: error.message,
+      executionTime: Date.now() - startTime
+    });
+    
     res.json({
       success: false,
-      error: error.message
+      error: error.message || 'An error occurred while processing your query.'
     });
   }
 });
+
+// Get user's audit history
+router.get('/audit-history', authCheck, async (req, res) => {
+  try {
+    const logs = await auditLogger.getUserAuditLogs(req.user.id, 50);
+    res.json({ success: true, logs });
+  } catch (error) {
+    res.json({ success: false, error: error.message });
+  }
+});
+
+// SQL Query Validation - Protection against dangerous operations
+function validateSQLQuery(sqlQuery, dbType) {
+  const query = sqlQuery.toUpperCase().trim();
+  
+  // Blacklist dangerous SQL commands
+  const dangerousPatterns = [
+    /DROP\s+(TABLE|DATABASE|SCHEMA|INDEX|VIEW)/i,
+    /TRUNCATE\s+TABLE/i,
+    /ALTER\s+TABLE/i,
+    /CREATE\s+(TABLE|DATABASE|SCHEMA|INDEX)/i,
+    /GRANT\s+/i,
+    /REVOKE\s+/i,
+    /EXEC(UTE)?\s+/i,
+    /UNION\s+.*SELECT/i,  // Potential SQL injection
+    /;\s*DROP/i,           // Potential SQL injection
+    /;\s*DELETE/i,         // Potential SQL injection
+    /--/,                  // SQL comments (potential injection)
+    /\/\*/,                // SQL comments (potential injection)
+    /xp_cmdshell/i,        // SQL Server command execution
+    /sp_executesql/i,      // Dynamic SQL execution
+  ];
+  
+  for (const pattern of dangerousPatterns) {
+    if (pattern.test(sqlQuery)) {
+      return { 
+        safe: false, 
+        reason: `Dangerous SQL pattern detected: ${pattern}. Only SELECT queries are allowed for safety.` 
+      };
+    }
+  }
+  
+  // Only allow SELECT, SHOW, DESCRIBE queries
+  const allowedPatterns = [
+    /^SELECT\s+/i,
+    /^SHOW\s+/i,
+    /^DESCRIBE\s+/i,
+    /^DESC\s+/i,
+    /^EXPLAIN\s+/i,
+  ];
+  
+  const isAllowed = allowedPatterns.some(pattern => pattern.test(query));
+  
+  if (!isAllowed) {
+    return { 
+      safe: false, 
+      reason: 'Only SELECT, SHOW, DESCRIBE, and EXPLAIN queries are allowed for safety.' 
+    };
+  }
+  
+  // Additional validation: Check for multiple statements
+  const statementCount = (sqlQuery.match(/;/g) || []).length;
+  if (statementCount > 0) {
+    return {
+      safe: false,
+      reason: 'Multiple SQL statements are not allowed.'
+    };
+  }
+  
+  return { safe: true };
+}
+
+// Execute query with timeout to prevent long-running queries
+async function executeQueryWithTimeout(sqlQuery, dbType, config, database, timeout = 30000) {
+  return Promise.race([
+    executeQuery(sqlQuery, dbType, config, database),
+    new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Query execution timeout. Query took too long to execute.')), timeout)
+    )
+  ]);
+}
 
 // Convert natural language to SQL using Gemini API
 async function convertToSQL(nlQuery, schema, dbType) {
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
   const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
   
-  const prompt = `You are a SQL query generator. Convert the following natural language query into a valid ${dbType.toUpperCase()} SQL query.
+  // Get blocked columns list
+  const blockedColumns = columnSecurity.blocked.join(', ');
+  
+  const prompt = `
+You are an expert SQL query generator. Convert the following natural language query into a valid ${dbType.toUpperCase()} SQL query.
 
 Database Schema:
 ${schema}
 
-Natural Language Query: ${nlQuery}
+Natural Language Query:
+${nlQuery}
 
-Instructions:
-1. Generate ONLY the SQL query, nothing else
-2. Do not include explanations, markdown formatting, or code blocks
-3. Use proper ${dbType.toUpperCase()} syntax
-4. Return only executable SQL
-5. For SELECT queries, limit results to 100 rows if no limit is specified
-6. Use appropriate JOIN clauses when needed
-7. Ensure the query is safe and does not include DROP, DELETE, or UPDATE unless explicitly requested
+CRITICAL SECURITY INSTRUCTIONS:
+- NEVER include or reference these sensitive columns:
+${blockedColumns}
+- If a blocked column is required, skip or safely substitute it.
 
-SQL Query:`;
+RULES:
+1. Only generate safe SELECT queries. Never generate DROP, DELETE, UPDATE, or INSERT.
+2. Prefix columns with table names in JOINs (e.g., students.id).
+3. Use table_name.* for SELECT * queries (sensitive columns will be filtered automatically).
+4. Limit to 100 rows if no limit is specified.
+5. Ignore non-existent tables or columns; generate the closest valid SQL query.
+6. Output must be strictly enclosed between <SQL> and </SQL> tags.
+7. If unsure, return <SQL>SELECT 'Unable to generate valid SQL query based on input.'</SQL>
+
+SQL Query:
+`;
+
   
   const result = await model.generateContent(prompt);
   const response = await result.response;
