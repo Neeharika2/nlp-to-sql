@@ -3,87 +3,154 @@
 
 <head>
     <title>Profile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             padding: 20px;
-            text-align: center;
         }
 
         .container {
             max-width: 800px;
             margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
 
         .nav {
             display: flex;
             justify-content: flex-end;
-            margin-bottom: 20px;
+            gap: 15px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
         }
 
         .nav a {
-            margin-left: 10px;
             text-decoration: none;
-            color: #4285f4;
+            color: #667eea;
+            font-weight: 600;
+            transition: all 0.3s;
         }
 
         .profile {
-            margin-top: 50px;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            text-align: left;
+            text-align: center;
         }
 
         .profile img {
-            width: 100px;
-            height: 100px;
+            width: 120px;
+            height: 120px;
             border-radius: 50%;
+            border: 5px solid #667eea;
+            margin-bottom: 20px;
         }
 
-        .config-btn {
-            display: inline-block;
-            background-color: #4285f4;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            text-decoration: none;
-            margin-top: 20px;
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            color: #2c3e50;
+            margin: 20px 0 10px 0;
+        }
+
+        .profile p {
+            color: #7f8c8d;
+            margin: 5px 0;
         }
 
         .role-badge {
             display: inline-block;
-            background-color: #4CAF50;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 5px 15px;
-            border-radius: 15px;
-            font-size: 12px;
-            margin-top: 10px;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 15px 0;
         }
 
         .permissions {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f5f5f5;
-            border-radius: 5px;
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            text-align: left;
+            border: 2px solid #e1e8ed;
+        }
+
+        .permissions h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
         }
 
         .permissions ul {
-            margin: 10px 0;
-            padding-left: 20px;
+            list-style: none;
+            padding: 0;
         }
 
         .permissions li {
+            padding: 10px;
             margin: 5px 0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .allowed {
-            color: #4CAF50;
+            color: #27ae60;
+            background: #d4edda;
         }
 
         .blocked {
-            color: #f44336;
+            color: #e74c3c;
+            background: #f8d7da;
+        }
+
+        .permissions li i {
+            font-size: 18px;
+        }
+
+        .config-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            margin-top: 25px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .config-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .note {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 15px;
+            padding: 15px;
+            background: #fff3cd;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
         }
     </style>
 </head>
@@ -91,41 +158,63 @@
 <body>
     <div class="container">
         <div class="nav">
-            <a href="/">Home</a>
-            <a href="/auth/logout">Logout</a>
+            <a href="/"><i class="fas fa-home"></i> Home</a>
+            <a href="/auth/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
         </div>
 
         <div class="profile">
-            <h1>Welcome to your profile</h1>
             <% if(user) { %>
                 <img src="<%= user.photo %>" alt="Profile photo">
-                <h2>
+                <h1>
                     <%= user.displayName %>
-                </h2>
-                <p>Email: <%= user.email %>
+                </h1>
+                <p><i class="fas fa-envelope"></i>
+                    <%= user.email %>
                 </p>
-                <p>Google ID: <%= user.id %>
+                <p><i class="fas fa-id-card"></i> ID: <%= user.id %>
                 </p>
-                <span class="role-badge">ADMIN</span>
+                <span class="role-badge"><i class="fas fa-crown"></i> ADMIN</span>
 
                 <div class="permissions">
-                    <h3>Your Access Permissions</h3>
+                    <h3><i class="fas fa-shield-alt"></i> Your Access Permissions</h3>
                     <ul>
-                        <li class="allowed">✓ Full access to all tables and views</li>
-                        <li class="allowed">✓ Can access regular data (names, emails, addresses, phones, etc.)</li>
-                        <li class="blocked">✗ Cannot access passwords or password hashes</li>
-                        <li class="blocked">✗ Cannot access credit card numbers or PCI data</li>
-                        <li class="blocked">✗ Cannot access SSN or social security numbers</li>
-                        <li class="blocked">✗ Cannot access API keys, tokens, or credentials</li>
+                        <li class="allowed">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Full access to all tables and views</span>
+                        </li>
+                        <li class="allowed">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Can access regular data (names, emails, addresses, phones, etc.)</span>
+                        </li>
+                        <li class="blocked">
+                            <i class="fas fa-times-circle"></i>
+                            <span>Cannot access passwords or password hashes</span>
+                        </li>
+                        <li class="blocked">
+                            <i class="fas fa-times-circle"></i>
+                            <span>Cannot access credit card numbers or PCI data</span>
+                        </li>
+                        <li class="blocked">
+                            <i class="fas fa-times-circle"></i>
+                            <span>Cannot access SSN or social security numbers</span>
+                        </li>
+                        <li class="blocked">
+                            <i class="fas fa-times-circle"></i>
+                            <span>Cannot access API keys, tokens, or credentials</span>
+                        </li>
                     </ul>
-                    <p style="font-size: 12px; color: #666; margin-top: 10px;">
-                        <strong>Note:</strong> All sensitive data is blocked for security.
+                    <div class="note">
+                        <strong><i class="fas fa-info-circle"></i> Note:</strong> All sensitive data is blocked for
+                        security.
                         When sensitive columns are requested, aggregate alternatives will be suggested.
                         All queries are logged for audit purposes.
-                    </p>
+                    </div>
                 </div>
 
-                <a href="/database/config" class="config-btn">Configure Database</a>
+                <a href="/database/config" class="config-btn">
+                    <i class="fas fa-database"></i>
+                    Configure Database
+                </a>
                 <% } %>
         </div>
     </div>

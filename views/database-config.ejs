@@ -2,70 +2,106 @@
 <html>
 
 <head>
-    <title>Database Configuration</title>
+    <title>Configure Database</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             padding: 20px;
-            background-color: #f5f5f5;
         }
 
         .container {
             max-width: 800px;
             margin: 0 auto;
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
 
         .nav {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #ddd;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
         }
 
         .nav a {
             text-decoration: none;
-            color: #4285f4;
+            color: #667eea;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav a:hover {
+            color: #764ba2;
         }
 
         h1 {
-            color: #333;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 32px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
             margin-bottom: 30px;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
         label {
             display: block;
-            margin-bottom: 5px;
-            color: #555;
-            font-weight: bold;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 14px;
         }
 
         select,
         input[type="text"],
         input[type="password"],
-        input[type="number"] {
+        input[type="number"],
+        textarea {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            padding: 12px 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
             font-size: 14px;
-            box-sizing: border-box;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        select:focus,
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
         }
 
         .credential-fields {
-            margin-top: 20px;
-            padding: 20px;
-            background-color: #f9f9f9;
-            border-radius: 5px;
+            margin-top: 25px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border: 2px solid #e1e8ed;
         }
 
         .hidden {
@@ -73,24 +109,40 @@
         }
 
         .submit-btn {
-            background-color: #4285f4;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 12px 30px;
+            padding: 15px 40px;
             border: none;
-            border-radius: 5px;
+            border-radius: 50px;
             cursor: pointer;
             font-size: 16px;
-            margin-top: 20px;
+            font-weight: 600;
+            margin-top: 25px;
+            width: 100%;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
 
         .submit-btn:hover {
-            background-color: #357abd;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
         }
 
         .info-text {
-            color: #666;
-            font-size: 14px;
+            color: #7f8c8d;
+            font-size: 12px;
             margin-top: 5px;
+        }
+
+        .db-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
         }
     </style>
 </head>
@@ -98,12 +150,18 @@
 <body>
     <div class="container">
         <div class="nav">
-            <a href="/">← Home</a>
-            <a href="/profile">Profile</a>
-            <a href="/auth/logout">Logout</a>
+            <a href="/"><i class="fas fa-arrow-left"></i> Home</a>
+            <div>
+                <a href="/profile"><i class="fas fa-user"></i> Profile</a>
+                <a href="/auth/logout" style="margin-left: 15px;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
         </div>
 
-        <h1>Configure Your Database</h1>
+        <h1>
+            <span class="db-icon"><i class="fas fa-database"></i></span>
+            Configure Database
+        </h1>
+        <p class="subtitle">Connect to your database to start querying with natural language</p>
 
         <form action="/database/configure" method="POST">
             <div class="form-group">
@@ -290,7 +348,9 @@
                 </div>
             </div>
 
-            <button type="submit" class="submit-btn">Connect & Scan Databases</button>
+            <button type="submit" class="submit-btn">
+                <i class="fas fa-plug"></i> Connect & Scan Databases
+            </button>
         </form>
     </div>
 

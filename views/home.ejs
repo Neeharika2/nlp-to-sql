@@ -2,68 +2,183 @@
 <html>
 
 <head>
-    <title>Google Authentication</title>
+    <title>NLP to SQL - Home</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        * {
             margin: 0;
-            padding: 20px;
-            text-align: center;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
         }
 
-        .nav {
+        .navbar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 15px 30px;
             display: flex;
-            justify-content: flex-end;
-            margin-bottom: 20px;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .nav a {
-            margin-left: 10px;
-            text-decoration: none;
-            color: #4285f4;
-        }
-
-        .welcome {
-            margin-top: 50px;
-        }
-
-        .google-btn {
-            display: inline-block;
-            background-color: #4285f4;
+        .logo {
             color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: white;
             text-decoration: none;
-            margin-top: 20px;
+            padding: 8px 20px;
+            border-radius: 20px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .hero {
+            text-align: center;
+            padding: 100px 20px;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 56px;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .hero p {
+            font-size: 20px;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            color: #667eea;
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 18px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .features-grid {
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .feature-card i {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        .feature-card h3 {
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+
+        .feature-card p {
+            opacity: 0.9;
+            line-height: 1.6;
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <div class="nav">
+    <div class="navbar">
+        <div class="logo">
+            <i class="fas fa-database"></i>
+            NLP to SQL
+        </div>
+        <div class="nav-links">
             <% if(user) { %>
-                <a href="/profile">Profile</a>
-                <a href="/auth/logout">Logout</a>
+                <a href="/profile"><i class="fas fa-user"></i> Profile</a>
+                <a href="/auth/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 <% } else { %>
-                    <a href="/auth/login">Login</a>
+                    <a href="/auth/login"><i class="fas fa-sign-in-alt"></i> Login</a>
                     <% } %>
         </div>
+    </div>
 
-        <div class="welcome">
-            <h1>Welcome to NLP to SQL</h1>
-            <p>Query your database using natural language</p>
-            <% if(!user) { %>
-                <p>Please login to continue</p>
-                <a href="/auth/login" class="google-btn">Login</a>
-                <% } else { %>
-                    <a href="/database/config" class="google-btn">Configure Database</a>
-                    <% } %>
+    <div class="hero">
+        <h1>Query Databases Naturally</h1>
+        <p>Transform natural language into SQL queries instantly</p>
+
+        <% if(!user) { %>
+            <a href="/auth/login" class="cta-button">
+                <i class="fas fa-rocket"></i>
+                Get Started
+            </a>
+            <% } else { %>
+                <a href="/database/config" class="cta-button">
+                    <i class="fas fa-database"></i>
+                    Configure Database
+                </a>
+                <% } %>
+    </div>
+
+    <div class="features-grid">
+        <div class="feature-card">
+            <i class="fas fa-comments"></i>
+            <h3>Natural Language</h3>
+            <p>Ask questions in plain English and get SQL queries instantly</p>
+        </div>
+        <div class="feature-card">
+            <i class="fas fa-shield-alt"></i>
+            <h3>Secure & Safe</h3>
+            <p>Built-in security features protect sensitive data automatically</p>
+        </div>
+        <div class="feature-card">
+            <i class="fas fa-database"></i>
+            <h3>Multiple Databases</h3>
+            <p>Support for MySQL, PostgreSQL, MongoDB, and more</p>
         </div>
     </div>
 </body>

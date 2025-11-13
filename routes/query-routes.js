@@ -241,31 +241,30 @@ async function convertToSQL(nlQuery, schema, dbType) {
   // Get blocked columns list
   const blockedColumns = columnSecurity.blocked.join(', ');
   
-  const prompt = `
-You are an expert SQL query generator. Convert the following natural language query into a valid ${dbType.toUpperCase()} SQL query.
+  const prompt = `You are an expert SQL query generator. Convert the following natural language query into a valid ${dbType.toUpperCase()} SQL query.
 
 Database Schema:
 ${schema}
 
-Natural Language Query:
-${nlQuery}
+Natural Language Query: ${nlQuery}
 
 CRITICAL SECURITY INSTRUCTIONS:
-- NEVER include or reference these sensitive columns:
+**NEVER include these sensitive columns in your query:**
 ${blockedColumns}
-- If a blocked column is required, skip or safely substitute it.
 
-RULES:
-1. Only generate safe SELECT queries. Never generate DROP, DELETE, UPDATE, or INSERT.
-2. Prefix columns with table names in JOINs (e.g., students.id).
-3. Use table_name.* for SELECT * queries (sensitive columns will be filtered automatically).
-4. Limit to 100 rows if no limit is specified.
-5. Ignore non-existent tables or columns; generate the closest valid SQL query.
-6. Output must be strictly enclosed between <SQL> and </SQL> tags.
-7. If unsure, return <SQL>SELECT 'Unable to generate valid SQL query based on input.'</SQL>
+These columns contain sensitive data and must NEVER be selected, filtered, or referenced in any way.
 
-SQL Query:
-`;
+ADDITIONAL INSTRUCTIONS:
+1.  **Exclude Sensitive Data**: Do NOT select or reference any of the blocked columns listed above, even if the user explicitly asks for them.
+2.  **Prefix Columns in JOINs**: When using a JOIN, ALWAYS prefix column names with the table name to prevent ambiguity (e.g., \`students.id\`, \`branches.name\`).
+3.  **Handle SELECT***: If selecting all columns, use \`table_name.*\` for each table, but the system will automatically filter out sensitive columns.
+4.  **Generate SQL Only**: Return ONLY the raw SQL query. Do not include explanations, markdown, or any text other than the SQL.
+5.  **Use Correct Syntax**: Use proper ${dbType.toUpperCase()} syntax.
+6.  **Limit Results**: For SELECT queries, limit results to 100 rows if no limit is specified.
+7.  **Safety First**: Do not generate any query that modifies data (no DROP, DELETE, UPDATE, INSERT, etc.). Only SELECT queries are allowed.
+
+SQL Query:`;
+
 
   
   const result = await model.generateContent(prompt);

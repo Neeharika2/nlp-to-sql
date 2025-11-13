@@ -2,262 +2,868 @@
 <html>
 
 <head>
-    <title>Query Interface</title>
+    <title>Query Interface - <%= selectedDatabase %>
+    </title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        * {
             margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        .nav {
+        .app-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Enhanced Top Bar */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-bottom: 1px solid #e1e8ed;
+            padding: 12px 25px;
             display: flex;
             justify-content: space-between;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #ddd;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            z-index: 1000;
         }
 
-        .nav a {
+        .top-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: #667eea;
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+
+        .sidebar-toggle:hover {
+            background: #f0f7ff;
+        }
+
+        .db-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px solid #e1e8ed;
+        }
+
+        .db-selector i {
+            color: #667eea;
+        }
+
+        .db-selector select {
+            border: none;
+            background: transparent;
+            font-weight: 600;
+            color: #2c3e50;
+            cursor: pointer;
+        }
+
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .new-query-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
             text-decoration: none;
-            color: #4285f4;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
         }
 
-        .db-info {
-            background-color: #e3f2fd;
-            padding: 15px;
-            border-radius: 5px;
+        .new-query-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+
+        .user-menu:hover {
+            background: #f8f9fa;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #fee;
+        }
+
+        /* Collapsible Sidebar */
+        .sidebar {
+            width: 320px;
+            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            left: 0;
+            top: 70px;
+            bottom: 0;
+            z-index: 999;
+            transition: transform 0.3s;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-header h2 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .sidebar-header .db-type {
+            font-size: 12px;
+            color: #95a5a6;
+            text-transform: uppercase;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
             margin-bottom: 20px;
         }
 
+        .sidebar-section h3 {
+            padding: 15px 20px 10px;
+            font-size: 14px;
+            color: #95a5a6;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .sidebar-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: #667eea;
+        }
+
+        .sidebar-item.active {
+            background: rgba(52, 152, 219, 0.2);
+            border-left-color: #3498db;
+        }
+
+        .sidebar-item i {
+            margin-right: 10px;
+            width: 16px;
+        }
+
+        .sidebar-item .text {
+            font-size: 13px;
+        }
+
+        .sidebar-item .meta {
+            font-size: 11px;
+            color: #bdc3c7;
+            margin-top: 2px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 320px;
+            margin-top: 70px;
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+            transition: margin-left 0.3s;
+        }
+
+        .main-content.sidebar-collapsed {
+            margin-left: 0;
+        }
+
+        /* Central Query Input */
         .query-section {
-            margin-bottom: 30px;
+            padding: 40px 30px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-bottom: 1px solid #e1e8ed;
+        }
+
+        .query-container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .query-title {
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .query-input-container {
+            position: relative;
+            margin-bottom: 25px;
         }
 
         .query-input {
             width: 100%;
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-            box-sizing: border-box;
-            min-height: 100px;
-            resize: vertical;
+            padding: 20px 25px;
+            border: 3px solid #e1e8ed;
+            border-radius: 15px;
+            font-size: 18px;
+            font-family: inherit;
+            resize: none;
+            min-height: 60px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .query-input:focus {
             outline: none;
-            border-color: #4285f4;
+            border-color: #667eea;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.2);
         }
 
-        .button-group {
-            margin-top: 15px;
+        .generate-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.6);
+        }
+
+        .generate-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* Results Area with Tabs */
+        .results-section {
+            flex: 1;
             display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .results-tabs {
+            display: flex;
+            background: white;
+            border-bottom: 1px solid #e1e8ed;
+        }
+
+        .tab {
+            padding: 15px 25px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            font-weight: 600;
+            color: #7f8c8d;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab:hover {
+            color: #667eea;
+        }
+
+        .tab-content {
+            flex: 1;
+            overflow: hidden;
+            display: none;
+        }
+
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .results-container {
+            flex: 1;
+            overflow: auto;
+            padding: 20px;
+        }
+
+        /* Enhanced Table View */
+        .results-table-container {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .table-controls {
+            padding: 15px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e1e8ed;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-search {
+            display: flex;
+            align-items: center;
             gap: 10px;
         }
 
-        .submit-btn {
-            background-color: #4285f4;
-            color: white;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
+        .table-search input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
         }
 
-        .submit-btn:hover {
-            background-color: #357abd;
-        }
-
-        .submit-btn:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
-        }
-
-        .clear-btn {
-            background-color: #6c757d;
-            color: white;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-            color: #666;
-        }
-
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #4285f4;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .result-section {
-            margin-top: 30px;
-        }
-
-        .sql-query-box {
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 5px;
-            padding: 15px;
-            margin-bottom: 20px;
-            font-family: 'Courier New', monospace;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-
-        .sql-query-box .label {
-            font-weight: bold;
-            color: #495057;
-            margin-bottom: 10px;
-        }
-
-        .sql-query {
-            background-color: #263238;
-            color: #aed581;
-            padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto;
+        .table-sort select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
         }
 
         .results-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
-            overflow-x: auto;
-            display: block;
+            background: white;
         }
 
-        .results-table thead {
-            background-color: #4285f4;
+        .results-table th {
+            background: #f8f9fa;
+            padding: 15px 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            color: #2c3e50;
+            border-bottom: 2px solid #e1e8ed;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .results-table th:hover {
+            background: #e9ecef;
+        }
+
+        .results-table th.sort-asc::after,
+        .results-table th.sort-desc::after {
+            content: '▼';
+            position: absolute;
+            right: 8px;
+            color: #667eea;
+        }
+
+        .results-table th.sort-desc::after {
+            content: '▲';
+        }
+
+        .results-table td {
+            padding: 12px;
+            font-size: 13px;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        .results-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        /* SQL Tab */
+        .sql-display {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            margin: 20px;
+        }
+
+        /* Chart Tab Placeholder */
+        .chart-container {
+            padding: 40px;
+            text-align: center;
+            color: #7f8c8d;
+        }
+
+        .chart-container i {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e1e8ed;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .action-btn:hover {
+            background: #667eea;
             color: white;
         }
 
-        .results-table th,
-        .results-table td {
-            padding: 12px;
-            text-align: left;
-            border: 1px solid #ddd;
+        .action-btn.secondary {
+            border-color: #95a5a6;
+            color: #95a5a6;
         }
 
-        .results-table tbody tr:nth-child(even) {
-            background-color: #f8f9fa;
+        .action-btn.secondary:hover {
+            background: #95a5a6;
+            color: white;
         }
 
-        .results-table tbody tr:hover {
-            background-color: #e9ecef;
+        /* Messages */
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
         }
 
-        .error-box {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 20px;
+        .message {
+            margin-bottom: 20px;
+            animation: fadeIn 0.3s;
         }
 
-        .success-box {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 20px;
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-user {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+
+        .message-user .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .message-assistant {
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .message-assistant .message-bubble {
+            background: white;
+            color: #2c3e50;
+            border: 1px solid #e1e8ed;
+        }
+
+        .warning-message {
+            background: #fff3cd;
+            color: #856404;
+            padding: 12px 18px;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px 18px;
+            border-radius: 8px;
+            border-left: 4px solid #e74c3c;
+            margin-top: 10px;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #bdc3c7;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #95a5a6;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 280px;
+            }
+
+            .main-content {
+                margin-left: 280px;
+            }
+
+            .main-content.sidebar-collapsed {
+                margin-left: 0;
+            }
+
+            .top-bar {
+                padding: 10px 15px;
+            }
+
+            .query-section {
+                padding: 20px 15px;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <div class="nav">
-            <a href="/database/config">← Change Database</a>
-            <div>
-                <a href="/profile">Profile</a>
-                <a href="/auth/logout" style="margin-left: 10px;">Logout</a>
+    <!-- Enhanced Top Bar -->
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="db-selector">
+                <i class="fas fa-database"></i>
+                <select id="dbSelector">
+                    <option value="<%= selectedDatabase %>">
+                        <%= selectedDatabase %>
+                    </option>
+                </select>
+            </div>
+        </div>
+        <div class="top-bar-right">
+            <a href="#" class="new-query-btn" id="newQueryBtn">
+                <i class="fas fa-plus"></i>
+                New Query
+            </a>
+            <div class="user-menu">
+                <img src="<%= typeof user !== 'undefined' && user.photo ? user.photo : '/default-avatar.png' %>"
+                    alt="User" class="user-avatar">
+                <span class="user-name">Admin</span>
+            </div>
+            <button class="logout-btn" onclick="window.location.href='/auth/logout'" title="Logout">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Collapsible Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-database"></i> Database</h2>
+            <div class="db-type">
+                <%= dbType.toUpperCase() %>
             </div>
         </div>
 
-        <h1>Query Interface</h1>
-
-        <div class="db-info">
-            <strong>Connected to:</strong>
-            <%= dbType.toUpperCase() %> / <%= selectedDatabase %>
-        </div>
-
-        <div class="query-section">
-            <form id="queryForm">
-                <textarea id="nlQuery" name="nlQuery" class="query-input"
-                    placeholder="Enter your query in natural language..." required></textarea>
-                <div class="button-group">
-                    <button type="submit" class="submit-btn" id="submitBtn">Execute Query</button>
-                    <button type="button" class="clear-btn" onclick="clearResults()">Clear</button>
+        <div class="sidebar-content">
+            <!-- Database Info -->
+            <div class="sidebar-section">
+                <h3><i class="fas fa-info-circle"></i> Database Info</h3>
+                <div class="sidebar-item">
+                    <i class="fas fa-table"></i>
+                    <div>
+                        <div class="text">Tables</div>
+                        <div class="meta">View schema</div>
+                    </div>
                 </div>
-            </form>
-        </div>
-
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p>Converting to SQL and executing query...</p>
-        </div>
-
-        <div class="result-section" id="resultSection" style="display: none;">
-            <h2>Results</h2>
-
-            <div class="sql-query-box" id="sqlQueryBox" style="display: none;">
-                <div class="label">Generated SQL Query:</div>
-                <div class="sql-query" id="sqlQuery"></div>
+                <div class="sidebar-item">
+                    <i class="fas fa-columns"></i>
+                    <div>
+                        <div class="text">Columns</div>
+                        <div class="meta">Field details</div>
+                    </div>
+                </div>
             </div>
 
-            <div id="results"></div>
+            <!-- Saved Queries -->
+            <div class="sidebar-section">
+                <h3><i class="fas fa-bookmark"></i> Saved Queries</h3>
+                <div class="sidebar-item">
+                    <i class="fas fa-plus"></i>
+                    <div>
+                        <div class="text">Save Current Query</div>
+                    </div>
+                </div>
+                <!-- Add saved queries dynamically -->
+            </div>
+
+            <!-- Query History -->
+            <div class="sidebar-section">
+                <h3><i class="fas fa-history"></i> Recent Queries</h3>
+                <div id="queryHistory">
+                    <!-- Populate with recent queries -->
+                </div>
+            </div>
+
+            <!-- Suggested Queries -->
+            <div class="sidebar-section">
+                <h3><i class="fas fa-lightbulb"></i> Suggested Queries</h3>
+                <div class="sidebar-item">
+                    <div>
+                        <div class="text">Show all users</div>
+                    </div>
+                </div>
+                <div class="sidebar-item">
+                    <div>
+                        <div class="text">Count records by status</div>
+                    </div>
+                </div>
+                <div class="sidebar-item">
+                    <div>
+                        <div class="text">Recent activity</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Central Query Input -->
+        <div class="query-section">
+            <div class="query-container">
+                <h1 class="query-title">Ask Your Database</h1>
+                <div class="query-input-container">
+                    <textarea id="nlQuery" class="query-input" placeholder="Type your question in natural language..."
+                        rows="3"></textarea>
+                </div>
+                <button type="button" class="generate-btn" id="generateBtn">
+                    <i class="fas fa-magic"></i>
+                    Generate & Execute
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Area with Tabs -->
+        <div class="results-section">
+            <div class="results-tabs">
+                <div class="tab active" data-tab="table">Table View</div>
+                <div class="tab" data-tab="chart">Chart View</div>
+                <div class="tab" data-tab="sql">SQL Query</div>
+            </div>
+
+            <!-- Table View Tab -->
+            <div class="tab-content active" id="tableTab">
+                <div class="results-container">
+                    <div id="tableResults">
+                        <!-- Results will be displayed here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart View Tab -->
+            <div class="tab-content" id="chartTab">
+                <div class="chart-container">
+                    <i class="fas fa-chart-bar"></i>
+                    <h3>Chart Visualization</h3>
+                    <p>Chart functionality coming soon...</p>
+                </div>
+            </div>
+
+            <!-- SQL Tab -->
+            <div class="tab-content" id="sqlTab">
+                <div id="sqlDisplay" class="sql-display">
+                    <!-- SQL will be displayed here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="action-btn" id="exportCsvBtn">
+                <i class="fas fa-download"></i>
+                Export CSV
+            </button>
+            <button class="action-btn" id="exportExcelBtn">
+                <i class="fas fa-file-excel"></i>
+                Export Excel
+            </button>
+            <button class="action-btn secondary" id="createChartBtn">
+                <i class="fas fa-chart-line"></i>
+                Create Chart
+            </button>
+            <button class="action-btn secondary" id="saveQueryBtn">
+                <i class="fas fa-bookmark"></i>
+                Save Query
+            </button>
+            <button class="action-btn secondary" id="shareReportBtn">
+                <i class="fas fa-share"></i>
+                Share Report
+            </button>
         </div>
     </div>
 
     <script>
-        document.getElementById('queryForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+        // Sidebar toggle
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const sidebarToggle = document.getElementById('sidebarToggle');
 
-            const nlQuery = document.getElementById('nlQuery').value;
-            const submitBtn = document.getElementById('submitBtn');
-            const loading = document.getElementById('loading');
-            const resultSection = document.getElementById('resultSection');
-            const results = document.getElementById('results');
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('sidebar-collapsed');
+        });
 
-            // Show loading, hide results
-            loading.style.display = 'block';
-            resultSection.style.display = 'none';
-            submitBtn.disabled = true;
+        // Tab switching
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(tc => tc.classList.remove('active'));
+
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab + 'Tab').classList.add('active');
+            });
+        });
+
+        // New query button
+        document.getElementById('newQueryBtn').addEventListener('click', () => {
+            document.getElementById('nlQuery').value = '';
+            document.getElementById('nlQuery').focus();
+            // Clear results
+            document.getElementById('tableResults').innerHTML = '';
+            document.getElementById('sqlDisplay').textContent = '';
+        });
+
+        // Update query input handling
+        const nlQueryInput = document.getElementById('nlQuery');
+        const generateBtn = document.getElementById('generateBtn');
+
+        nlQueryInput.addEventListener('input', function () {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
+        // Update form submission to use new button
+        generateBtn.addEventListener('click', async () => {
+            const query = nlQueryInput.value.trim();
+            if (!query) return;
+
+            // Add user message
+            addMessage(query, 'user');
+            nlQueryInput.value = '';
+            nlQueryInput.style.height = 'auto';
+
+            // Show typing indicator
+            const typingId = showTypingIndicator();
+            generateBtn.disabled = true;
 
             try {
                 const response = await fetch('/query/execute', {
@@ -265,7 +871,7 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ nlQuery })
+                    body: JSON.stringify({ nlQuery: query })
                 });
 
                 if (response.status === 401) {
@@ -275,72 +881,101 @@
                 }
 
                 const data = await response.json();
-
-                // Hide loading
-                loading.style.display = 'none';
-                submitBtn.disabled = false;
+                removeTypingIndicator(typingId);
 
                 if (data.success) {
-                    // Show SQL query
-                    document.getElementById('sqlQueryBox').style.display = 'block';
-                    document.getElementById('sqlQuery').textContent = data.sqlQuery;
-
-                    // Show results
-                    resultSection.style.display = 'block';
-
-                    if (data.results && data.results.length > 0) {
-                        results.innerHTML = generateTable(data.results);
-                    } else {
-                        results.innerHTML = '<div class="success-box">Query executed successfully. No results returned.</div>';
-                    }
+                    addAssistantResponse(data);
                 } else {
-                    resultSection.style.display = 'block';
-                    results.innerHTML = `<div class="error-box"><strong>Error:</strong> ${data.error}</div>`;
+                    addErrorMessage(data.error);
                 }
             } catch (error) {
-                loading.style.display = 'none';
-                submitBtn.disabled = false;
-                resultSection.style.display = 'block';
-                results.innerHTML = `<div class="error-box"><strong>Error:</strong> ${error.message}</div>`;
+                removeTypingIndicator(typingId);
+                addErrorMessage(error.message);
+            } finally {
+                generateBtn.disabled = false;
             }
         });
 
-        function generateTable(data) {
-            if (!data || data.length === 0) {
-                return '<p>No results found.</p>';
+        // Update addAssistantResponse to handle tabs
+        function addAssistantResponse(data) {
+            // Update SQL tab
+            document.getElementById('sqlDisplay').textContent = data.sqlQuery;
+
+            // Update table tab
+            if (data.results && data.results.length > 0) {
+                const tableHtml = generateEnhancedTable(data.results);
+                document.getElementById('tableResults').innerHTML = tableHtml;
+            } else {
+                document.getElementById('tableResults').innerHTML = '<p>No results found.</p>';
             }
 
+            // Switch to table tab
+            tabs[0].click();
+        }
+
+        function generateEnhancedTable(data) {
+            if (!data || data.length === 0) return '<p>No results found.</p>';
+
             const keys = Object.keys(data[0]);
-            let html = '<table class="results-table"><thead><tr>';
-
-            // Generate headers
-            keys.forEach(key => {
-                html += `<th>${key}</th>`;
-            });
-            html += '</tr></thead><tbody>';
-
-            // Generate rows
-            data.forEach(row => {
-                html += '<tr>';
-                keys.forEach(key => {
-                    const value = row[key] !== null && row[key] !== undefined ? row[key] : 'NULL';
-                    html += `<td>${value}</td>`;
-                });
-                html += '</tr>';
-            });
-
-            html += '</tbody></table>';
-            html += `<p style="margin-top: 15px; color: #666;"><strong>Total rows:</strong> ${data.length}</p>`;
+            let html = `
+                <div class="results-table-container">
+                    <div class="table-controls">
+                        <div class="table-search">
+                            <input type="text" placeholder="Search..." id="tableSearch">
+                        </div>
+                        <div class="table-sort">
+                            <select id="tableSort">
+                                <option value="">Sort by...</option>
+                                ${keys.map(key => `<option value="${key}">${key}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                ${keys.map(key => `<th data-column="${key}">${escapeHtml(key)}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.map(row => `
+                                <tr>
+                                    ${keys.map(key => `<td>${escapeHtml(String(row[key] || ''))}</td>`).join('')}
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="row-count">📊 ${data.length} row${data.length !== 1 ? 's' : ''} returned</div>
+            `;
 
             return html;
         }
 
-        function clearResults() {
-            document.getElementById('nlQuery').value = '';
-            document.getElementById('resultSection').style.display = 'none';
-            document.getElementById('results').innerHTML = '';
-            document.getElementById('sqlQueryBox').style.display = 'none';
-        }
+        // Add table sorting and searching functionality
+        document.addEventListener('click', (e) => {
+            if (e.target.tagName === 'TH' && e.target.dataset.column) {
+                const column = e.target.dataset.column;
+                const table = e.target.closest('table');
+                const tbody = table.querySelector('tbody');
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+
+                rows.sort((a, b) => {
+                    const aVal = a.children[Array.from(a.parentElement.children[0].children).indexOf(e.target)].textContent;
+                    const bVal = b.children[Array.from(b.parentElement.children[0].children).indexOf(e.target)].textContent;
+                    return aVal.localeCompare(bVal);
+                });
+
+                rows.forEach(row => tbody.appendChild(row));
+            }
+        });
+
+        // Enter key to generate
+        nlQueryInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                generateBtn.click();
+            }
+        });
     </script>
 </body>
 

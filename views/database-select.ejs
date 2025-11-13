@@ -3,121 +3,159 @@
 
 <head>
     <title>Select Database</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             padding: 20px;
-            background-color: #f5f5f5;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
 
         .nav {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #ddd;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
         }
 
         .nav a {
             text-decoration: none;
-            color: #4285f4;
-        }
-
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .success-message {
-            background-color: #d4edda;
-            color: #155724;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-
-        .db-info {
-            background-color: #f9f9f9;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-
-        .db-list {
-            margin-top: 20px;
-        }
-
-        .db-item {
-            background-color: #fff;
-            border: 2px solid #ddd;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            cursor: pointer;
+            color: #667eea;
+            font-weight: 600;
             transition: all 0.3s;
         }
 
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 32px;
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+        }
+
+        .db-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 2px solid #e1e8ed;
+        }
+
+        .db-info strong {
+            color: #2c3e50;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .db-list {
+            display: grid;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .db-item {
+            background: white;
+            border: 2px solid #e1e8ed;
+            padding: 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
         .db-item:hover {
-            border-color: #4285f4;
-            background-color: #f0f7ff;
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
         }
 
         .db-item.selected {
-            border-color: #4285f4;
-            background-color: #e3f2fd;
+            border-color: #667eea;
+            background: linear-gradient(135deg, #f0f7ff 0%, #e3f2fd 100%);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
         }
 
         .db-item h3 {
-            margin: 0 0 10px 0;
-            color: #333;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .db-item p {
-            margin: 5px 0;
-            color: #666;
+            color: #7f8c8d;
             font-size: 14px;
+            margin: 5px 0;
         }
 
         .continue-btn {
-            background-color: #4285f4;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 12px 30px;
+            padding: 15px 40px;
             border: none;
-            border-radius: 5px;
+            border-radius: 50px;
             cursor: pointer;
             font-size: 16px;
-            margin-top: 20px;
+            font-weight: 600;
+            margin-top: 25px;
+            width: 100%;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
 
-        .continue-btn:hover {
-            background-color: #357abd;
+        .continue-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
         }
 
         .continue-btn:disabled {
-            background-color: #ccc;
+            background: #bdc3c7;
             cursor: not-allowed;
+            box-shadow: none;
         }
 
         .reconfigure-btn {
-            background-color: #6c757d;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            text-decoration: none;
             display: inline-block;
-            margin-top: 10px;
+            background: #ecf0f1;
+            color: #2c3e50;
+            padding: 12px 25px;
+            border-radius: 50px;
+            text-decoration: none;
+            margin-top: 15px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .reconfigure-btn:hover {
+            background: #bdc3c7;
         }
     </style>
 </head>
@@ -125,78 +163,81 @@
 <body>
     <div class="container">
         <div class="nav">
-            <a href="/">← Home</a>
-            <a href="/profile">Profile</a>
-            <a href="/auth/logout">Logout</a>
+            <a href="/"><i class="fas fa-arrow-left"></i> Home</a>
+            <div>
+                <a href="/profile" style="margin-right: 15px;"><i class="fas fa-user"></i> Profile</a>
+                <a href="/auth/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
         </div>
 
-        <h1>Select Database to Query</h1>
+        <h1><i class="fas fa-database"></i> Select Database</h1>
 
         <div class="success-message">
-            ✓ Successfully connected to <%= dbType.toUpperCase() %>!
+            <i class="fas fa-check-circle"></i>
+            Successfully connected to <%= dbType.toUpperCase() %>!
         </div>
 
         <div class="db-info">
             <strong>Connection Details:</strong>
-            <p>Database Type: <%= dbType %>
+            <p><i class="fas fa-server"></i> Database Type: <%= dbType %>
             </p>
             <% if (host) { %>
-                <p>Host: <%= host %>
+                <p><i class="fas fa-network-wired"></i> Host: <%= host %>
                 </p>
                 <% } %>
         </div>
 
-        <h2>Available Databases:</h2>
+        <h2 style="color: #2c3e50; margin-bottom: 15px;">Available Databases:</h2>
 
         <% if (databases && databases.length> 0) { %>
             <form action="/database/select" method="POST">
                 <input type="hidden" name="dbType" value="<%= dbType %>">
                 <div class="db-list">
-                    <% databases.forEach((db, index)=> { %>
+                    <% databases.forEach((db)=> { %>
                         <label>
                             <div class="db-item" onclick="selectDatabase(this, '<%= db.name %>')">
                                 <input type="radio" name="selectedDatabase" value="<%= db.name %>"
                                     style="display: none;" required>
                                 <h3>
+                                    <i class="fas fa-table"></i>
                                     <%= db.name %>
                                 </h3>
                                 <% if (db.tables) { %>
-                                    <p>Tables/Collections: <%= db.tables %>
+                                    <p><i class="fas fa-list"></i> Tables/Collections: <%= db.tables %>
                                     </p>
                                     <% } %>
                                         <% if (db.size) { %>
-                                            <p>Size: <%= db.size %>
+                                            <p><i class="fas fa-hdd"></i> Size: <%= db.size %>
                                             </p>
                                             <% } %>
                             </div>
                         </label>
                         <% }); %>
                 </div>
-                <button type="submit" class="continue-btn" id="continueBtn" disabled>Continue to Query
-                    Interface</button>
+                <button type="submit" class="continue-btn" id="continueBtn" disabled>
+                    <i class="fas fa-arrow-right"></i> Continue to Query Interface
+                </button>
             </form>
             <% } else { %>
-                <p>No databases found. Please check your credentials.</p>
+                <p style="color: #7f8c8d; text-align: center; padding: 40px;">
+                    <i class="fas fa-exclamation-circle"></i> No databases found. Please check your credentials.
+                </p>
                 <% } %>
 
-                    <br>
-                    <a href="/database/config" class="reconfigure-btn">← Reconfigure Database</a>
+                    <center>
+                        <a href="/database/config" class="reconfigure-btn">
+                            <i class="fas fa-arrow-left"></i> Reconfigure Database
+                        </a>
+                    </center>
     </div>
 
     <script>
         function selectDatabase(element, dbName) {
-            // Remove selected class from all items
             document.querySelectorAll('.db-item').forEach(item => {
                 item.classList.remove('selected');
             });
-
-            // Add selected class to clicked item
             element.classList.add('selected');
-
-            // Check the radio button
             element.querySelector('input[type="radio"]').checked = true;
-
-            // Enable continue button
             document.getElementById('continueBtn').disabled = false;
         }
     </script>
