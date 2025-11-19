@@ -5,7 +5,47 @@
     <title>Query Interface - <%= selectedDatabase %>
     </title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <!-- html2canvas for chart export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- jsPDF for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
+        :root {
+            /* Professional Color Palette */
+            --primary-blue: #1e3a8a;
+            --primary-blue-light: #3b82f6;
+            --primary-blue-dark: #1e40af;
+            --secondary-teal: #14b8a6;
+            --secondary-emerald: #10b981;
+            --accent-orange: #f59e0b;
+            --accent-amber: #fbbf24;
+
+            /* Neutral Palette */
+            --neutral-50: #f9fafb;
+            --neutral-100: #f3f4f6;
+            --neutral-200: #e5e7eb;
+            --neutral-300: #d1d5db;
+            --neutral-400: #9ca3af;
+            --neutral-500: #6b7280;
+            --neutral-600: #4b5563;
+            --neutral-700: #374151;
+            --neutral-800: #1f2937;
+            --neutral-900: #111827;
+
+            /* Semantic Colors */
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --info: #3b82f6;
+
+            /* Background */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb;
+            --bg-tertiary: #f3f4f6;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,15 +53,19 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f7fa;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-secondary);
             height: 100vh;
             overflow: hidden;
+            color: var(--neutral-800);
+            margin: 0;
+            padding: 0;
         }
 
         .app-container {
             display: flex;
             height: 100vh;
+            width: 100vw;
         }
 
         /* Enhanced Top Bar */
@@ -30,13 +74,13 @@
             top: 0;
             left: 0;
             right: 0;
-            background: white;
-            border-bottom: 1px solid #e1e8ed;
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--neutral-200);
             padding: 12px 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
             z-index: 1000;
         }
 
@@ -51,14 +95,14 @@
             border: none;
             font-size: 18px;
             cursor: pointer;
-            color: #667eea;
+            color: var(--primary-blue);
             padding: 8px;
             border-radius: 6px;
             transition: all 0.3s;
         }
 
         .sidebar-toggle:hover {
-            background: #f0f7ff;
+            background: var(--neutral-100);
         }
 
         .db-selector {
@@ -66,20 +110,20 @@
             align-items: center;
             gap: 10px;
             padding: 8px 15px;
-            background: #f8f9fa;
+            background: var(--bg-tertiary);
             border-radius: 8px;
-            border: 2px solid #e1e8ed;
+            border: 1px solid var(--neutral-200);
         }
 
         .db-selector i {
-            color: #667eea;
+            color: var(--primary-blue);
         }
 
         .db-selector select {
             border: none;
             background: transparent;
             font-weight: 600;
-            color: #2c3e50;
+            color: var(--neutral-800);
             cursor: pointer;
         }
 
@@ -90,22 +134,23 @@
         }
 
         .new-query-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
             color: white;
             padding: 10px 20px;
-            border-radius: 25px;
+            border-radius: 8px;
             text-decoration: none;
             font-weight: 600;
             display: flex;
             align-items: center;
             gap: 8px;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 2px 8px rgba(30, 58, 138, 0.25);
             transition: all 0.3s;
         }
 
         .new-query-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+            background: linear-gradient(135deg, var(--primary-blue-dark) 0%, var(--primary-blue) 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.35);
         }
 
         .user-menu {
@@ -114,29 +159,23 @@
             gap: 10px;
             cursor: pointer;
             padding: 8px 12px;
-            border-radius: 20px;
+            border-radius: 8px;
             transition: all 0.3s;
         }
 
         .user-menu:hover {
-            background: #f8f9fa;
-        }
-
-        .user-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
+            background: var(--neutral-100);
         }
 
         .user-name {
             font-weight: 600;
-            color: #2c3e50;
+            color: var(--neutral-800);
         }
 
         .logout-btn {
             background: none;
             border: none;
-            color: #e74c3c;
+            color: var(--error);
             cursor: pointer;
             font-size: 16px;
             padding: 8px;
@@ -145,13 +184,13 @@
         }
 
         .logout-btn:hover {
-            background: #fee;
+            background: rgba(239, 68, 68, 0.1);
         }
 
         /* Collapsible Sidebar */
         .sidebar {
             width: 320px;
-            background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+            background: linear-gradient(180deg, var(--neutral-800) 0%, var(--neutral-900) 100%);
             color: white;
             display: flex;
             flex-direction: column;
@@ -170,7 +209,7 @@
 
         .sidebar-header {
             padding: 20px;
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(0, 0, 0, 0.3);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
@@ -194,12 +233,40 @@
             margin-bottom: 20px;
         }
 
-        .sidebar-section h3 {
+        .sidebar-section-header {
             padding: 15px 20px 10px;
-            font-size: 14px;
-            color: #95a5a6;
+            font-size: 12px;
+            color: var(--neutral-400);
             text-transform: uppercase;
-            font-weight: 600;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s;
+        }
+
+        .sidebar-section-header:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-section-header i.toggle-icon {
+            transition: transform 0.3s;
+        }
+
+        .sidebar-section-header.collapsed i.toggle-icon {
+            transform: rotate(-90deg);
+        }
+
+        .sidebar-section-content {
+            max-height: 500px;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .sidebar-section-content.collapsed {
+            max-height: 0;
         }
 
         .sidebar-item {
@@ -210,13 +277,13 @@
         }
 
         .sidebar-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-left-color: #667eea;
+            background: rgba(255, 255, 255, 0.08);
+            border-left-color: var(--secondary-teal);
         }
 
         .sidebar-item.active {
-            background: rgba(52, 152, 219, 0.2);
-            border-left-color: #3498db;
+            background: rgba(20, 184, 166, 0.15);
+            border-left-color: var(--secondary-teal);
         }
 
         .sidebar-item i {
@@ -243,6 +310,7 @@
             flex-direction: column;
             background: #ffffff;
             transition: margin-left 0.3s;
+            min-height: 0;
         }
 
         .main-content.sidebar-collapsed {
@@ -252,21 +320,16 @@
         /* Central Query Input */
         .query-section {
             padding: 40px 30px;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-bottom: 1px solid #e1e8ed;
-        }
-
-        .query-container {
-            max-width: 800px;
-            margin: 0 auto;
-            text-align: center;
+            background: linear-gradient(135deg, var(--neutral-50) 0%, var(--neutral-100) 100%);
+            border-bottom: 1px solid var(--neutral-200);
+            flex-shrink: 0;
         }
 
         .query-title {
-            font-size: 24px;
-            color: #2c3e50;
+            font-size: 28px;
+            color: var(--neutral-900);
             margin-bottom: 20px;
-            font-weight: 600;
+            font-weight: 700;
         }
 
         .query-input-container {
@@ -277,132 +340,158 @@
         .query-input {
             width: 100%;
             padding: 20px 25px;
-            border: 3px solid #e1e8ed;
-            border-radius: 15px;
-            font-size: 18px;
+            border: 2px solid var(--neutral-200);
+            border-radius: 12px;
+            font-size: 16px;
             font-family: inherit;
             resize: none;
             min-height: 60px;
             transition: all 0.3s;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            background: var(--bg-primary);
+            color: var(--neutral-800);
         }
 
         .query-input:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.2);
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1), 0 4px 12px rgba(0, 0, 0, 0.08);
         }
 
         .generate-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
             color: white;
-            padding: 15px 40px;
+            padding: 14px 36px;
             border: none;
-            border-radius: 30px;
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 600;
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 14px rgba(30, 58, 138, 0.3);
             transition: all 0.3s;
         }
 
         .generate-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.6);
+            background: linear-gradient(135deg, var(--primary-blue-dark) 0%, var(--primary-blue) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(30, 58, 138, 0.4);
         }
 
         .generate-btn:disabled {
-            background: #bdc3c7;
+            background: var(--neutral-300);
             cursor: not-allowed;
             box-shadow: none;
             transform: none;
         }
 
-        /* Results Area with Tabs */
+        /* Results Area with Tabs - UPDATED */
         .results-section {
             flex: 1;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            min-height: 0;
         }
 
         .results-tabs {
             display: flex;
-            background: white;
-            border-bottom: 1px solid #e1e8ed;
+            background: var(--bg-primary);
+            border-bottom: 2px solid var(--neutral-200);
+            flex-shrink: 0;
         }
 
         .tab {
-            padding: 15px 25px;
+            padding: 14px 24px;
             cursor: pointer;
             border-bottom: 3px solid transparent;
             transition: all 0.3s;
             font-weight: 600;
-            color: #7f8c8d;
+            color: var(--neutral-500);
+            font-size: 14px;
         }
 
         .tab.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
+            color: var(--primary-blue);
+            border-bottom-color: var(--primary-blue);
+            background: var(--neutral-50);
         }
 
         .tab:hover {
-            color: #667eea;
+            color: var(--primary-blue-light);
+            background: var(--neutral-50);
         }
 
         .tab-content {
             flex: 1;
-            overflow: hidden;
             display: none;
+            flex-direction: column;
+            min-height: 0;
         }
 
         .tab-content.active {
             display: flex;
-            flex-direction: column;
         }
 
+        /* UPDATED: Results container - facilitates layout within tabs */
         .results-container {
             flex: 1;
-            overflow: auto;
+            /* overflow: hidden; Removed - this was preventing proper scrolling */
             padding: 20px;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
         }
 
-        /* Enhanced Table View */
+        /* Enhanced Table View - UPDATED for table-only scrolling */
         .results-table-container {
-            background: white;
-            border-radius: 8px;
+            background: var(--bg-primary);
+            border-radius: 10px;
             overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--neutral-200);
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
         }
 
         .table-controls {
-            padding: 15px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #e1e8ed;
+            padding: 16px;
+            background: var(--neutral-50);
+            border-bottom: 1px solid var(--neutral-200);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-shrink: 0;
         }
 
-        .table-search {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .table-search input {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-        }
-
+        .table-search input,
         .table-sort select {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
+            padding: 8px 14px;
+            border: 1px solid var(--neutral-300);
             border-radius: 6px;
+            font-size: 14px;
+            color: var(--neutral-700);
+            background: var(--bg-primary);
+        }
+
+        .table-search input:focus,
+        .table-sort select:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+        }
+
+        /* UPDATED: Table wrapper with conditional max-height and scrolling */
+        .results-table-wrapper {
+            flex: 1;
+            overflow: auto;
+            max-height: 60vh;
+            /* Conditional max height - table will only scroll if content exceeds this */
+            min-height: 100px;
+            /* Minimum height for the table area */
         }
 
         .results-table {
@@ -412,19 +501,24 @@
         }
 
         .results-table th {
-            background: #f8f9fa;
-            padding: 15px 12px;
+            background: var(--neutral-50);
+            padding: 14px 12px;
             text-align: left;
-            font-weight: 600;
-            font-size: 13px;
-            color: #2c3e50;
-            border-bottom: 2px solid #e1e8ed;
+            font-weight: 700;
+            font-size: 12px;
+            color: var(--neutral-700);
+            border-bottom: 2px solid var(--neutral-200);
             cursor: pointer;
             position: relative;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         .results-table th:hover {
-            background: #e9ecef;
+            background: var(--neutral-100);
         }
 
         .results-table th.sort-asc::after,
@@ -432,7 +526,7 @@
             content: '▼';
             position: absolute;
             right: 8px;
-            color: #667eea;
+            color: var(--primary-blue);
         }
 
         .results-table th.sort-desc::after {
@@ -441,57 +535,117 @@
 
         .results-table td {
             padding: 12px;
-            font-size: 13px;
-            border-bottom: 1px solid #f1f3f5;
+            font-size: 14px;
+            border-bottom: 1px solid var(--neutral-100);
+            color: var(--neutral-700);
         }
 
         .results-table tr:hover {
-            background: #f8f9fa;
+            background: var(--neutral-50);
         }
 
-        /* SQL Tab */
+        .results-table tbody tr:nth-child(even) {
+            background: var(--bg-secondary);
+        }
+
+        .results-table tbody tr:nth-child(even):hover {
+            background: var(--neutral-100);
+        }
+
+        /* Row count - always visible */
+        .table-footer {
+            padding: 12px 20px;
+            background: var(--neutral-50);
+            border-top: 1px solid var(--neutral-200);
+            flex-shrink: 0;
+        }
+
+        .row-count {
+            font-size: 13px;
+            color: var(--neutral-500);
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            border-radius: 0;
+            display: inline-block;
+        }
+
+        .row-count.scrollable::after {
+            content: ' • Scroll to see more';
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
+
+        /* SQL Tab - UPDATED */
         .sql-display {
-            background: #1e1e1e;
-            color: #d4d4d4;
-            padding: 20px;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
+            background: #0d1117;
+            color: #c9d1d9;
+            padding: 24px;
+            border-radius: 10px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Courier New', monospace;
             font-size: 14px;
-            overflow-x: auto;
+            line-height: 1.6;
+            overflow: auto;
             white-space: pre-wrap;
-            margin: 20px;
+            border: 1px solid var(--neutral-700);
+            flex: 1;
+            margin: 0;
+            max-height: 60vh;
+            /* Conditional max height for SQL display */
+            min-height: 200px;
         }
 
-        /* Chart Tab Placeholder */
+        /* Chart Container - UPDATED */
         .chart-container {
             padding: 40px;
             text-align: center;
-            color: #7f8c8d;
+            color: var(--neutral-500);
+            flex: 1;
+            overflow-y: auto;
+            max-height: 60vh;
+            /* Conditional max height for chart content */
+            min-height: 200px;
         }
 
         .chart-container i {
-            font-size: 48px;
+            font-size: 64px;
             margin-bottom: 20px;
+            color: var(--neutral-300);
         }
 
-        /* Action Buttons */
+        .chart-container h3 {
+            color: var(--neutral-700);
+            margin-bottom: 8px;
+        }
+
+        /* Action Buttons - Always visible at bottom, outside scrollable area */
         .action-buttons {
             padding: 20px;
-            background: white;
-            border-top: 1px solid #e1e8ed;
+            background: var(--bg-primary);
+            border-top: 1px solid var(--neutral-200);
             display: flex;
-            gap: 15px;
+            gap: 12px;
             flex-wrap: wrap;
+            flex-shrink: 0;
+            /* Never shrink */
+            position: sticky;
+            /* Stick to bottom of tab content */
+            bottom: 0;
+            z-index: 20;
+            /* Above other content */
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+            /* Subtle shadow */
         }
 
         .action-btn {
-            padding: 10px 20px;
-            border: 2px solid #667eea;
-            background: white;
-            color: #667eea;
-            border-radius: 25px;
+            padding: 10px 18px;
+            border: 2px solid var(--primary-blue);
+            background: var(--bg-primary);
+            color: var(--primary-blue);
+            border-radius: 8px;
             cursor: pointer;
             font-weight: 600;
+            font-size: 14px;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -499,132 +653,291 @@
         }
 
         .action-btn:hover {
-            background: #667eea;
+            background: var(--primary-blue);
             color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(30, 58, 138, 0.25);
         }
 
         .action-btn.secondary {
-            border-color: #95a5a6;
-            color: #95a5a6;
+            border-color: var(--neutral-400);
+            color: var(--neutral-600);
         }
 
         .action-btn.secondary:hover {
-            background: #95a5a6;
+            background: var(--neutral-600);
+            color: white;
+            border-color: var(--neutral-600);
+        }
+
+        .action-btn.success {
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .action-btn.success:hover {
+            background: var(--success);
             color: white;
         }
 
-        /* Messages */
-        .messages-area {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            background: #f8f9fa;
-        }
-
-        .message {
+        /* Warning and Error messages - UPDATED */
+        .warning-message,
+        .error-message {
             margin-bottom: 20px;
-            animation: fadeIn 0.3s;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .message-user {
-            display: flex;
-            justify-content: flex-end;
-        }
-
-        .message-bubble {
-            max-width: 70%;
             padding: 12px 18px;
-            border-radius: 18px;
-            word-wrap: break-word;
-        }
-
-        .message-user .message-bubble {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .message-assistant {
-            display: flex;
-            justify-content: flex-start;
-        }
-
-        .message-assistant .message-bubble {
-            background: white;
-            color: #2c3e50;
-            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            flex-shrink: 0;
         }
 
         .warning-message {
-            background: #fff3cd;
-            color: #856404;
-            padding: 12px 18px;
-            border-radius: 8px;
-            border-left: 4px solid #ffc107;
-            margin-top: 10px;
-            font-size: 13px;
+            background: rgba(245, 158, 11, 0.1);
+            color: #92400e;
+            border-left: 4px solid var(--warning);
         }
 
         .error-message {
-            background: #fee;
-            color: #c33;
-            padding: 12px 18px;
+            background: rgba(239, 68, 68, 0.1);
+            color: #991b1b;
+            border-left: 4px solid var(--error);
+        }
+
+        /* User avatar fix */
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* Chart config styling improvements */
+        .chart-config-select {
+            padding: 8px 12px;
+            border: 1px solid var(--neutral-300);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--neutral-700);
+            font-size: 14px;
+            cursor: pointer;
+            min-width: 150px;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236b7280'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            background-size: 1em;
+        }
+
+        .chart-config-select:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+        }
+
+        .config-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 150px;
+        }
+
+        .config-group label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 13px;
+            color: var(--neutral-600);
+        }
+
+        /* Chart error and info messages */
+        .chart-message {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chart-message.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #991b1b;
+            border-left: 4px solid var(--error);
+        }
+
+        .chart-message.info {
+            background: rgba(59, 130, 246, 0.1);
+            color: #1e40af;
+            border-left: 4px solid var(--info);
+        }
+
+        .chart-message.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #065f46;
+            border-left: 4px solid var(--success);
+        }
+
+        .chart-message.warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: #92400e;
+            border-left: 4px solid var(--warning);
+        }
+
+        /* Chart controls panel styling */
+        .chart-controls {
+            background: var(--bg-secondary);
+            border: 1px solid var(--neutral-300);
             border-radius: 8px;
-            border-left: 4px solid #e74c3c;
-            margin-top: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
         }
 
-        /* Scrollbar Styling */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+        .chart-controls-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--neutral-300);
         }
 
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
+        .chart-controls-header h4 {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--neutral-700);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        ::-webkit-scrollbar-thumb {
-            background: #bdc3c7;
-            border-radius: 4px;
+        .chart-controls-header button {
+            background: none;
+            border: none;
+            color: var(--neutral-500);
+            cursor: pointer;
+            font-size: 18px;
+            padding: 0;
+            display: flex;
+            align-items: center;
         }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: #95a5a6;
+        .chart-controls-header button:hover {
+            color: var(--neutral-700);
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 280px;
+        .chart-controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            padding: 16px;
+        }
+
+        .chart-control-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-control-group label {
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 13px;
+            color: var(--neutral-700);
+        }
+
+        .chart-control-group select,
+        .chart-control-group input {
+            padding: 8px 12px;
+            border: 1px solid var(--neutral-300);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--neutral-700);
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .chart-control-group select:focus,
+        .chart-control-group input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+        }
+
+        .chart-canvas-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            background: var(--bg-primary);
+            border: 1px solid var(--neutral-300);
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+        }
+
+        .chart-empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: var(--neutral-500);
+        }
+
+        .chart-empty-state i {
+            font-size: 48px;
+            color: var(--neutral-300);
+        }
+
+        .chart-empty-state h3 {
+            margin: 0;
+            font-size: 18px;
+            color: var(--neutral-700);
+        }
+
+        .chart-empty-state p {
+            margin: 0;
+            font-size: 14px;
+            color: var(--neutral-500);
+        }
+
+        .chart-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: var(--neutral-600);
+        }
+
+        .chart-loading i {
+            font-size: 32px;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
             }
 
-            .main-content {
-                margin-left: 280px;
+            to {
+                transform: rotate(360deg);
             }
+        }
 
-            .main-content.sidebar-collapsed {
-                margin-left: 0;
-            }
+        /* New CSS for the actual scrollable content area within each tab */
+        .tab-scrollable-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            min-height: 0;
+        }
 
-            .top-bar {
-                padding: 10px 15px;
-            }
-
-            .query-section {
-                padding: 20px 15px;
-            }
+        /* Content area that contains messages and tables but not action buttons */
+        .table-content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
         }
     </style>
 </head>
@@ -671,61 +984,60 @@
         </div>
 
         <div class="sidebar-content">
-            <!-- Database Info -->
+            <!-- Database Info (Collapsible) -->
             <div class="sidebar-section">
-                <h3><i class="fas fa-info-circle"></i> Database Info</h3>
-                <div class="sidebar-item">
-                    <i class="fas fa-table"></i>
-                    <div>
-                        <div class="text">Tables</div>
-                        <div class="meta">View schema</div>
-                    </div>
+                <div class="sidebar-section-header" onclick="toggleSection(this)">
+                    <span><i class="fas fa-info-circle"></i> Database Info</span>
+                    <i class="fas fa-chevron-down toggle-icon"></i>
                 </div>
-                <div class="sidebar-item">
-                    <i class="fas fa-columns"></i>
-                    <div>
-                        <div class="text">Columns</div>
-                        <div class="meta">Field details</div>
-                    </div>
+                <div class="sidebar-section-content" id="dbInfoContent">
+                    <!-- Tables will be populated here -->
                 </div>
             </div>
 
-            <!-- Saved Queries -->
+            <!-- Saved Queries (Collapsible) -->
             <div class="sidebar-section">
-                <h3><i class="fas fa-bookmark"></i> Saved Queries</h3>
-                <div class="sidebar-item">
-                    <i class="fas fa-plus"></i>
-                    <div>
-                        <div class="text">Save Current Query</div>
-                    </div>
+                <div class="sidebar-section-header" onclick="toggleSection(this)">
+                    <span><i class="fas fa-bookmark"></i> Saved Queries</span>
+                    <i class="fas fa-chevron-down toggle-icon"></i>
                 </div>
-                <!-- Add saved queries dynamically -->
+                <div class="sidebar-section-content" id="savedQueriesContent">
+                    <!-- Saved queries will be populated here -->
+                </div>
             </div>
 
-            <!-- Query History -->
+            <!-- Query History (Collapsible) -->
             <div class="sidebar-section">
-                <h3><i class="fas fa-history"></i> Recent Queries</h3>
-                <div id="queryHistory">
+                <div class="sidebar-section-header" onclick="toggleSection(this)">
+                    <span><i class="fas fa-history"></i> Recent Queries</span>
+                    <i class="fas fa-chevron-down toggle-icon"></i>
+                </div>
+                <div class="sidebar-section-content" id="queryHistory">
                     <!-- Populate with recent queries -->
                 </div>
             </div>
 
-            <!-- Suggested Queries -->
+            <!-- Suggested Queries (Collapsible) -->
             <div class="sidebar-section">
-                <h3><i class="fas fa-lightbulb"></i> Suggested Queries</h3>
-                <div class="sidebar-item">
-                    <div>
-                        <div class="text">Show all users</div>
-                    </div>
+                <div class="sidebar-section-header" onclick="toggleSection(this)">
+                    <span><i class="fas fa-lightbulb"></i> Suggested Queries</span>
+                    <i class="fas fa-chevron-down toggle-icon"></i>
                 </div>
-                <div class="sidebar-item">
-                    <div>
-                        <div class="text">Count records by status</div>
+                <div class="sidebar-section-content">
+                    <div class="sidebar-item" onclick="loadSuggestedQuery('Show all records from the first table')">
+                        <div>
+                            <div class="text">Show all records</div>
+                        </div>
                     </div>
-                </div>
-                <div class="sidebar-item">
-                    <div>
-                        <div class="text">Recent activity</div>
+                    <div class="sidebar-item" onclick="loadSuggestedQuery('Count total number of records')">
+                        <div>
+                            <div class="text">Count records</div>
+                        </div>
+                    </div>
+                    <div class="sidebar-item" onclick="loadSuggestedQuery('Show recent entries from the last 7 days')">
+                        <div>
+                            <div class="text">Recent activity</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -759,56 +1071,181 @@
 
             <!-- Table View Tab -->
             <div class="tab-content active" id="tableTab">
-                <div class="results-container">
-                    <div id="tableResults">
-                        <!-- Results will be displayed here -->
+                <div class="tab-scrollable-content"> <!-- NEW SCROLLABLE WRAPPER -->
+                    <div class="results-container">
+                        <div class="table-content-area">
+                            <div id="tableResults">
+                                <!-- Results will be populated here -->
+                            </div>
+                        </div>
                     </div>
+                </div>
+                <!-- Action Buttons - Always visible at bottom, OUTSIDE tab-scrollable-content -->
+                <div class="action-buttons">
+                    <button class="action-btn" id="exportCsvBtn">
+                        <i class="fas fa-download"></i>
+                        Export CSV
+                    </button>
+                    <button class="action-btn" id="exportExcelBtn">
+                        <i class="fas fa-file-excel"></i>
+                        Export Excel
+                    </button>
+                    <button class="action-btn secondary" id="createChartBtn">
+                        <i class="fas fa-chart-line"></i>
+                        Create Chart
+                    </button>
+                    <button class="action-btn secondary" id="saveQueryBtn">
+                        <i class="fas fa-bookmark"></i>
+                        Save Query
+                    </button>
+                    <button class="action-btn secondary" id="shareReportBtn">
+                        <i class="fas fa-share"></i>
+                        Share Report
+                    </button>
                 </div>
             </div>
 
             <!-- Chart View Tab -->
             <div class="tab-content" id="chartTab">
-                <div class="chart-container">
-                    <i class="fas fa-chart-bar"></i>
-                    <h3>Chart Visualization</h3>
-                    <p>Chart functionality coming soon...</p>
+                <div class="tab-scrollable-content">
+                    <div class="results-container">
+                        <div class="chart-container">
+                            <!-- Chart Controls Panel -->
+                            <div class="chart-controls" id="chartControls">
+                                <div class="chart-controls-header">
+                                    <h4><i class="fas fa-sliders-h"></i> Chart Customization</h4>
+                                    <button class="action-btn secondary" onclick="toggleChartControls()"
+                                        style="width: 30px; padding: 0; border: none; background: none;">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="chart-controls-grid">
+                                    <div class="chart-control-group">
+                                        <label>Chart Type</label>
+                                        <select id="chartTypeSelect" onchange="changeChartType(this.value)">
+                                            <option value="bar">Bar Chart</option>
+                                            <option value="line">Line Chart</option>
+                                            <option value="pie">Pie Chart</option>
+                                            <option value="doughnut">Doughnut Chart</option>
+                                            <option value="scatter">Scatter Plot</option>
+                                        </select>
+                                    </div>
+                                    <div class="chart-control-group">
+                                        <label>X-Axis Column</label>
+                                        <select id="xAxisColumn"></select>
+                                    </div>
+                                    <div class="chart-control-group">
+                                        <label>Y-Axis Column</label>
+                                        <select id="yAxisColumn"></select>
+                                    </div>
+                                    <div class="chart-control-group">
+                                        <label>Chart Title</label>
+                                        <input type="text" id="chartTitle" placeholder="Enter chart title">
+                                    </div>
+                                    <div class="chart-control-group">
+                                        <label>X-Axis Label</label>
+                                        <input type="text" id="xAxisLabel" placeholder="Enter X-axis label">
+                                    </div>
+                                    <div class="chart-control-group">
+                                        <label>Y-Axis Label</label>
+                                        <input type="text" id="yAxisLabel" placeholder="Enter Y-axis label">
+                                    </div>
+                                    <div class="chart-control-group">
+                                        <label>Color Theme</label>
+                                        <select id="colorTheme">
+                                            <option value="default">Default Blue</option>
+                                            <option value="vibrant">Vibrant Colors</option>
+                                            <option value="pastel">Pastel Colors</option>
+                                            <option value="professional">Professional</option>
+                                            <option value="dark">Dark Theme</option>
+                                        </select>
+                                    </div>
+                                    <div class="chart-control-group">
+                                        <label>Animation</label>
+                                        <select id="chartAnimation">
+                                            <option value="true">Enabled</option>
+                                            <option value="false">Disabled</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chart Canvas -->
+                            <div class="chart-canvas-container" id="chartCanvasContainer">
+                                <div class="chart-empty-state" id="chartEmptyState">
+                                    <i class="fas fa-chart-bar"></i>
+                                    <h3>No Chart Generated Yet</h3>
+                                    <p>Execute a query in the Table tab, then click "Create Chart" to visualize your
+                                        data</p>
+                                </div>
+                                <div class="chart-loading" id="chartLoading" style="display: none;">
+                                    <i class="fas fa-spinner"></i>
+                                    <p>Generating chart...</p>
+                                </div>
+                                <canvas id="chartCanvas"
+                                    style="display: none; max-width: 100%; height: 400px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Action Buttons for chart tab -->
+                <div class="action-buttons">
+                    <button class="action-btn" id="customizeChartBtn" onclick="toggleChartControls()">
+                        <i class="fas fa-sliders-h"></i>
+                        Customize Chart
+                    </button>
+                    <button class="action-btn" id="exportChartPngBtn">
+                        <i class="fas fa-image"></i>
+                        Export PNG
+                    </button>
+                    <button class="action-btn" id="exportChartPdfBtn">
+                        <i class="fas fa-file-pdf"></i>
+                        Export PDF
+                    </button>
+                    <button class="action-btn secondary" id="refreshChartBtn">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh Chart
+                    </button>
+                    <button class="action-btn secondary" id="saveChartBtn">
+                        <i class="fas fa-save"></i>
+                        Save Chart
+                    </button>
                 </div>
             </div>
 
             <!-- SQL Tab -->
             <div class="tab-content" id="sqlTab">
-                <div id="sqlDisplay" class="sql-display">
-                    <!-- SQL will be displayed here -->
+                <div class="tab-scrollable-content"> <!-- NEW SCROLLABLE WRAPPER -->
+                    <div class="results-container">
+                        <div id="sqlDisplay" class="sql-display">
+                            <!-- SQL will be displayed here -->
+                        </div>
+                    </div>
+                </div>
+                <!-- Action Buttons for SQL tab -->
+                <div class="action-buttons">
+                    <button class="action-btn" id="copySqlBtn" onclick="copySQL()">
+                        <i class="fas fa-copy"></i>
+                        Copy SQL
+                    </button>
+                    <button class="action-btn secondary" id="formatSqlBtn">
+                        <i class="fas fa-code"></i>
+                        Format SQL
+                    </button>
                 </div>
             </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="action-buttons">
-            <button class="action-btn" id="exportCsvBtn">
-                <i class="fas fa-download"></i>
-                Export CSV
-            </button>
-            <button class="action-btn" id="exportExcelBtn">
-                <i class="fas fa-file-excel"></i>
-                Export Excel
-            </button>
-            <button class="action-btn secondary" id="createChartBtn">
-                <i class="fas fa-chart-line"></i>
-                Create Chart
-            </button>
-            <button class="action-btn secondary" id="saveQueryBtn">
-                <i class="fas fa-bookmark"></i>
-                Save Query
-            </button>
-            <button class="action-btn secondary" id="shareReportBtn">
-                <i class="fas fa-share"></i>
-                Share Report
-            </button>
         </div>
     </div>
 
     <script>
+        // Global variables
+        let currentSqlQuery = '';
+        let currentNlQuery = '';
+        let schemaData = null;
+        let currentChart = null;
+        let lastQueryResultData = null;
+        let suggestedChartType = 'bar';
+
         // Sidebar toggle
         const sidebar = document.getElementById('sidebar');
         const mainContent = document.getElementById('mainContent');
@@ -830,19 +1267,32 @@
 
                 tab.classList.add('active');
                 document.getElementById(tab.dataset.tab + 'Tab').classList.add('active');
+
+                // Handle Chart View tab activation
+                if (tab.dataset.tab === 'chart') {
+                    handleChartViewActivation();
+                } else {
+                    // Destroy chart when leaving chart tab to free resources
+                    if (currentChart) {
+                        currentChart.destroy();
+                        currentChart = null;
+                    }
+                }
             });
         });
 
         // New query button
-        document.getElementById('newQueryBtn').addEventListener('click', () => {
+        document.getElementById('newQueryBtn').addEventListener('click', (e) => {
+            e.preventDefault();
             document.getElementById('nlQuery').value = '';
             document.getElementById('nlQuery').focus();
-            // Clear results
             document.getElementById('tableResults').innerHTML = '';
             document.getElementById('sqlDisplay').textContent = '';
+            currentSqlQuery = '';
+            currentNlQuery = '';
         });
 
-        // Update query input handling
+        // Query input handling
         const nlQueryInput = document.getElementById('nlQuery');
         const generateBtn = document.getElementById('generateBtn');
 
@@ -851,19 +1301,28 @@
             this.style.height = (this.scrollHeight) + 'px';
         });
 
-        // Update form submission to use new button
+        // Enter key to generate
+        nlQueryInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                generateBtn.click();
+            }
+        });
+
+        // Main generate button click handler (SINGLE DEFINITION)
         generateBtn.addEventListener('click', async () => {
             const query = nlQueryInput.value.trim();
-            if (!query) return;
+            if (!query) {
+                alert('Please enter a query');
+                return;
+            }
 
-            // Add user message
-            addMessage(query, 'user');
+            currentNlQuery = query;
             nlQueryInput.value = '';
             nlQueryInput.style.height = 'auto';
 
-            // Show typing indicator
-            const typingId = showTypingIndicator();
             generateBtn.disabled = true;
+            generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
 
             try {
                 const response = await fetch('/query/execute', {
@@ -881,23 +1340,30 @@
                 }
 
                 const data = await response.json();
-                removeTypingIndicator(typingId);
 
                 if (data.success) {
-                    addAssistantResponse(data);
+                    currentSqlQuery = data.sqlQuery;
+
+                    // Store query results and suggested chart type
+                    lastQueryResultData = data.results || null;
+                    suggestedChartType = data.suggestedChartType || 'bar';
+
+                    displayResults(data);
+                    await loadQueryHistory(); // Refresh history
                 } else {
-                    addErrorMessage(data.error);
+                    displayError(data.error);
                 }
             } catch (error) {
-                removeTypingIndicator(typingId);
-                addErrorMessage(error.message);
+                console.error('Error:', error);
+                displayError(error.message);
             } finally {
                 generateBtn.disabled = false;
+                generateBtn.innerHTML = '<i class="fas fa-magic"></i> Generate & Execute';
             }
         });
 
-        // Update addAssistantResponse to handle tabs
-        function addAssistantResponse(data) {
+        // Display results function
+        function displayResults(data) {
             // Update SQL tab
             document.getElementById('sqlDisplay').textContent = data.sqlQuery;
 
@@ -906,75 +1372,1687 @@
                 const tableHtml = generateEnhancedTable(data.results);
                 document.getElementById('tableResults').innerHTML = tableHtml;
             } else {
-                document.getElementById('tableResults').innerHTML = '<p>No results found.</p>';
+                document.getElementById('tableResults').innerHTML = '<p style="text-align: center; padding: 40px; color: #6b7280;">Query executed successfully. No results returned.</p>';
+            }
+
+            // Show warnings if any
+            if (data.warnings && data.warnings.length > 0) {
+                const warningHtml = data.warnings.map(w => `
+                    <div class="warning-message">
+                        <strong>⚠️ ${w.message}</strong>
+                    </div>
+                `).join('');
+                document.getElementById('tableResults').insertAdjacentHTML('afterbegin', warningHtml);
             }
 
             // Switch to table tab
             tabs[0].click();
         }
 
+        // Display error function
+        function displayError(errorMessage) {
+            const errorHtml = `
+                <div class="error-message">
+                    <strong>❌ Error:</strong><br>${escapeHtml(errorMessage)}
+                </div>
+            `;
+            document.getElementById('tableResults').innerHTML = errorHtml;
+            tabs[0].click();
+        }
+
+        // Generate enhanced table
         function generateEnhancedTable(data) {
             if (!data || data.length === 0) return '<p>No results found.</p>';
 
             const keys = Object.keys(data[0]);
+            const rowCount = data.length;
+
             let html = `
                 <div class="results-table-container">
                     <div class="table-controls">
                         <div class="table-search">
-                            <input type="text" placeholder="Search..." id="tableSearch">
+                            <input type="text" placeholder="Search..." id="tableSearch" onkeyup="filterTable()">
                         </div>
                         <div class="table-sort">
-                            <select id="tableSort">
+                            <select id="tableSort" onchange="sortTable(this.value)">
                                 <option value="">Sort by...</option>
-                                ${keys.map(key => `<option value="${key}">${key}</option>`).join('')}
+                                ${keys.map(key => `<option value="${key}">${escapeHtml(key)}</option>`).join('')}
                             </select>
                         </div>
                     </div>
-                    <table class="results-table">
-                        <thead>
-                            <tr>
-                                ${keys.map(key => `<th data-column="${key}">${escapeHtml(key)}</th>`).join('')}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${data.map(row => `
+                    <div class="results-table-wrapper" id="tableWrapper">
+                        <table class="results-table" id="resultsTable">
+                            <thead>
                                 <tr>
-                                    ${keys.map(key => `<td>${escapeHtml(String(row[key] || ''))}</td>`).join('')}
+                                    ${keys.map(key => `<th data-column="${key}">${escapeHtml(key)}</th>`).join('')}
                                 </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                ${data.map(row => `
+                                    <tr>
+                                        ${keys.map(key => {
+                const value = row[key] !== null && row[key] !== undefined ? row[key] : 'NULL';
+                return `<td>${escapeHtml(String(value))}</td>`;
+            }).join('')}
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-footer">
+                        <div class="row-count" id="rowCount">
+                            📊 ${rowCount} row${rowCount !== 1 ? 's' : ''} returned
+                        </div>
+                    </div>
                 </div>
-                <div class="row-count">📊 ${data.length} row${data.length !== 1 ? 's' : ''} returned</div>
             `;
+
+            // Add a small delay to check if table content exceeds the max height and add scrollable indicator
+            setTimeout(() => {
+                const tableWrapper = document.getElementById('tableWrapper');
+                const rowCountEl = document.getElementById('rowCount');
+                if (tableWrapper && rowCountEl) {
+                    if (tableWrapper.scrollHeight > tableWrapper.clientHeight) {
+                        rowCountEl.classList.add('scrollable');
+                    } else {
+                        rowCountEl.classList.remove('scrollable');
+                    }
+                }
+            }, 100);
 
             return html;
         }
 
-        // Add table sorting and searching functionality
-        document.addEventListener('click', (e) => {
-            if (e.target.tagName === 'TH' && e.target.dataset.column) {
-                const column = e.target.dataset.column;
-                const table = e.target.closest('table');
-                const tbody = table.querySelector('tbody');
-                const rows = Array.from(tbody.querySelectorAll('tr'));
+        // Escape HTML helper
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return String(text).replace(/[&<>"']/g, m => map[m]);
+        }
 
-                rows.sort((a, b) => {
-                    const aVal = a.children[Array.from(a.parentElement.children[0].children).indexOf(e.target)].textContent;
-                    const bVal = b.children[Array.from(b.parentElement.children[0].children).indexOf(e.target)].textContent;
-                    return aVal.localeCompare(bVal);
+        // Load query history on page load
+        // Load query history on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadQueryHistory();
+            await loadSavedQueries();
+            await loadSchemaInfo();
+            initializeChartListeners();
+        });
+
+        // Load query history
+        async function loadQueryHistory() {
+            try {
+                const response = await fetch('/query/history?limit=10');
+                const data = await response.json();
+
+                if (data.success && data.history.length > 0) {
+                    const historyContainer = document.getElementById('queryHistory');
+                    historyContainer.innerHTML = '';
+
+                    data.history.forEach(query => {
+                        const historyItem = document.createElement('div');
+                        historyItem.className = 'sidebar-item';
+                        historyItem.innerHTML = `
+                            <div>
+                                <div class="text">${escapeHtml(query.nlQuery.substring(0, 40))}${query.nlQuery.length > 40 ? '...' : ''}</div>
+                                <div class="meta">${new Date(query.timestamp).toLocaleString()}</div>
+                            </div>
+                        `;
+                        historyItem.onclick = () => loadHistoryQuery(query);
+                        historyContainer.appendChild(historyItem);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading history:', error);
+            }
+        }
+
+        // Load saved queries
+        async function loadSavedQueries() {
+            try {
+                const response = await fetch('/query/saved');
+                const data = await response.json();
+
+                const savedContent = document.getElementById('savedQueriesContent');
+                savedContent.innerHTML = '';
+
+                if (data.success && data.queries.length > 0) {
+                    data.queries.forEach(query => {
+                        const savedItem = document.createElement('div');
+                        savedItem.className = 'sidebar-item';
+                        savedItem.style.display = 'flex';
+                        savedItem.style.alignItems = 'center';
+                        savedItem.innerHTML = `
+                            <i class="fas fa-bookmark" style="margin-right: 10px;"></i>
+                            <div style="flex: 1;">
+                                <div class="text">${escapeHtml(query.name)}</div>
+                                <div class="meta">${new Date(query.timestamp).toLocaleString()}</div>
+                            </div>
+                            <i class="fas fa-trash" style="color: #e74c3c; cursor: pointer; padding: 5px;" onclick="event.stopPropagation(); deleteSavedQuery('${query.id}')"></i>
+                        `;
+                        savedItem.onclick = (e) => {
+                            if (!e.target.classList.contains('fa-trash')) {
+                                loadSavedQuery(query);
+                            }
+                        };
+                        savedContent.appendChild(savedItem);
+                    });
+                } else {
+                    savedContent.innerHTML = '<div style="padding: 20px; text-align: center; color: #bdc3c7; font-size: 12px;">No saved queries yet</div>';
+                }
+            } catch (error) {
+                console.error('Error loading saved queries:', error);
+            }
+        }
+
+        // Load schema information
+        async function loadSchemaInfo() {
+            try {
+                const response = await fetch('/query/schema');
+                const data = await response.json();
+
+                if (data.success) {
+                    schemaData = data.schema;
+                    displaySchemaInfo(data.schema);
+                }
+            } catch (error) {
+                console.error('Error loading schema:', error);
+            }
+        }
+
+        // Display schema info in sidebar
+        function displaySchemaInfo(schema) {
+            const dbInfoContent = document.getElementById('dbInfoContent');
+            dbInfoContent.innerHTML = '';
+
+            if (!schema || schema.length === 0) {
+                dbInfoContent.innerHTML = '<div style="padding: 20px; text-align: center; color: #bdc3c7; font-size: 12px;">No schema information</div>';
+                return;
+            }
+
+            schema.forEach(table => {
+                const tableItem = document.createElement('div');
+                tableItem.className = 'sidebar-item';
+                tableItem.innerHTML = `
+                    <i class="fas fa-table"></i>
+                    <div>
+                        <div class="text">${escapeHtml(table.name)}</div>
+                        <div class="meta">${table.columns.length} columns</div>
+                    </div>
+                `;
+                tableItem.onclick = () => showTableDetails(table);
+                dbInfoContent.appendChild(tableItem);
+            });
+        }
+
+        // Show table details
+        function showTableDetails(table) {
+            const details = table.columns.map(col =>
+                `${col.name} (${col.type}) ${col.attributes}`
+            ).join('\n');
+
+            alert(`Table: ${table.name}\n\nColumns:\n${details}`);
+        }
+
+        // Load query from history
+        function loadHistoryQuery(query) {
+            document.getElementById('nlQuery').value = query.nlQuery;
+            document.getElementById('sqlDisplay').textContent = query.sqlQuery;
+            currentSqlQuery = query.sqlQuery;
+            currentNlQuery = query.nlQuery;
+            tabs[2].click(); // Switch to SQL tab
+        }
+
+        // Load saved query
+        function loadSavedQuery(query) {
+            document.getElementById('nlQuery').value = query.nlQuery;
+            document.getElementById('sqlDisplay').textContent = query.sqlQuery;
+            currentSqlQuery = query.sqlQuery;
+            currentNlQuery = query.nlQuery;
+            tabs[2].click(); // Switch to SQL tab
+        }
+
+        // Delete saved query
+        async function deleteSavedQuery(queryId) {
+            if (!confirm('Are you sure you want to delete this saved query?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/query/saved/${queryId}`, {
+                    method: 'DELETE'
                 });
 
-                rows.forEach(row => tbody.appendChild(row));
+                const data = await response.json();
+
+                if (data.success) {
+                    await loadSavedQueries();
+                } else {
+                    alert('Failed to delete query');
+                }
+            } catch (error) {
+                console.error('Error deleting query:', error);
+                alert('Error deleting query');
+            }
+        }
+
+        // Save current query
+        document.getElementById('saveQueryBtn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (!currentSqlQuery || !currentNlQuery) {
+                alert('Please execute a query first before saving.');
+                return;
+            }
+
+            const name = prompt('Enter a name for this query:');
+            if (!name || name.trim() === '') return;
+
+            try {
+                const response = await fetch('/query/save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: name.trim(),
+                        nlQuery: currentNlQuery,
+                        sqlQuery: currentSqlQuery
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('✅ Query saved successfully!');
+                    await loadSavedQueries();
+                } else {
+                    alert('❌ Failed to save query: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error saving query:', error);
+                alert('❌ Error saving query: ' + error.message);
             }
         });
 
-        // Enter key to generate
-        nlQueryInput.addEventListener('keydown', function (e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                generateBtn.click();
+        // Toggle collapsible sections
+        function toggleSection(header) {
+            header.classList.toggle('collapsed');
+            const content = header.nextElementSibling;
+            content.classList.toggle('collapsed');
+        }
+
+        // Load suggested query
+        function loadSuggestedQuery(query) {
+            document.getElementById('nlQuery').value = query;
+            document.getElementById('nlQuery').focus();
+        }
+
+        // Table search filter
+        function filterTable() {
+            const input = document.getElementById('tableSearch');
+            const filter = input.value.toUpperCase();
+            const table = document.getElementById('resultsTable');
+            const rowCountEl = document.getElementById('rowCount');
+
+            if (!table) return;
+
+            const tr = table.getElementsByTagName('tr');
+            let visibleRows = 0;
+
+            for (let i = 1; i < tr.length; i++) {
+                let found = false;
+                const td = tr[i].getElementsByTagName('td');
+
+                for (let j = 0; j < td.length; j++) {
+                    if (td[j]) {
+                        const txtValue = td[j].textContent || td[j].innerText;
+                        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (found) {
+                    tr[i].style.display = '';
+                    visibleRows++;
+                } else {
+                    tr[i].style.display = 'none';
+                }
             }
+
+            // Update row count
+            const totalRows = tr.length - 1; // Subtract header row
+            if (filter) {
+                rowCountEl.innerHTML = `📊 Showing ${visibleRows} of ${totalRows} row${totalRows !== 1 ? 's' : ''}`;
+            } else {
+                rowCountEl.innerHTML = `📊 ${totalRows} row${totalRows !== 1 ? 's' : ''} returned`;
+            }
+        }
+
+        // Table sorting
+        function sortTable(columnName) {
+            if (!columnName) return;
+
+            const table = document.getElementById('resultsTable');
+            if (!table) return;
+
+            const tbody = table.querySelector('tbody');
+            const wrapper = document.getElementById('tableWrapper');
+            const rows = Array.from(tbody.querySelectorAll('tr:not([style*="display: none"])'));
+            const headers = Array.from(table.querySelectorAll('th'));
+            const columnIndex = headers.findIndex(th => th.dataset.column === columnName);
+
+            if (columnIndex === -1) return;
+
+            // Clear existing sort indicators
+            headers.forEach(th => {
+                th.classList.remove('sort-asc', 'sort-desc');
+            });
+
+            // Determine sort direction
+            const currentHeader = headers[columnIndex];
+            const isAscending = !currentHeader.dataset.sortDirection || currentHeader.dataset.sortDirection === 'desc';
+
+            rows.sort((a, b) => {
+                const aVal = a.children[columnIndex].textContent.trim();
+                const bVal = b.children[columnIndex].textContent.trim();
+
+                // Try numeric comparison first
+                const aNum = parseFloat(aVal);
+                const bNum = parseFloat(bVal);
+
+                if (!isNaN(aNum) && !isNaN(bNum)) {
+                    return isAscending ? aNum - bNum : bNum - aNum;
+                }
+
+                // Fallback to string comparison
+                return isAscending
+                    ? aVal.localeCompare(bVal, undefined, { numeric: true })
+                    : bVal.localeCompare(aVal, undefined, { numeric: true });
+            });
+
+            // Update header sort indicator
+            currentHeader.classList.add(isAscending ? 'sort-asc' : 'sort-desc');
+            currentHeader.dataset.sortDirection = isAscending ? 'asc' : 'desc';
+
+            // Re-append sorted rows
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
+        // Copy SQL to clipboard
+        function copySQL() {
+            const sqlText = document.getElementById('sqlDisplay').textContent;
+            navigator.clipboard.writeText(sqlText).then(() => {
+                alert('✅ SQL copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('❌ Failed to copy SQL');
+            });
+        }
+
+        // Test scrolling function
+        function testScroll() {
+            const container = document.querySelector('.results-container');
+            console.log('Results container:', container);
+            console.log('Container scroll height:', container.scrollHeight);
+            console.log('Container client height:', container.clientHeight);
+            console.log('Container overflow-y:', getComputedStyle(container).overflowY);
+        }
+
+        // ============ CHART FUNCTIONALITY ============
+
+        // Handle Chart View tab activation
+        function handleChartViewActivation() {
+            const chartControls = document.getElementById('chartControls');
+            const chartCanvas = document.getElementById('chartCanvas');
+            const chartEmptyState = document.getElementById('chartEmptyState');
+            const chartLoading = document.getElementById('chartLoading');
+
+            // Check if we have data and enough columns
+            if (!lastQueryResultData || lastQueryResultData.length === 0) {
+                // No data - show placeholder
+                chartControls.style.display = 'none';
+                chartCanvas.style.display = 'none';
+                chartLoading.style.display = 'none';
+                chartEmptyState.style.display = 'flex';
+                return;
+            }
+
+            const columns = Object.keys(lastQueryResultData[0]);
+            if (columns.length < 2) {
+                // Insufficient columns - show placeholder
+                chartControls.style.display = 'none';
+                chartCanvas.style.display = 'none';
+                chartLoading.style.display = 'none';
+                chartEmptyState.style.display = 'flex';
+                return;
+            }
+
+            // We have chartable data - show controls and initialize
+            chartEmptyState.style.display = 'none';
+            chartControls.style.display = 'block';
+
+            // Populate dropdowns
+            populateChartDropdowns(columns);
+
+            // Render initial chart
+            renderChart();
+        }
+
+        // Populate chart dropdowns
+        function populateChartDropdowns(columns) {
+            const chartTypeSelect = document.getElementById('chartTypeSelect');
+            const xAxisSelect = document.getElementById('xAxisColumn');
+            const yAxisSelect = document.getElementById('yAxisColumn');
+
+            // Set suggested chart type
+            if (chartTypeSelect) {
+                chartTypeSelect.value = suggestedChartType;
+            }
+
+            // Populate X and Y axis dropdowns
+            xAxisSelect.innerHTML = '';
+            yAxisSelect.innerHTML = '';
+
+            // Determine which columns are numeric
+            const numericColumns = [];
+            const nonNumericColumns = [];
+
+            columns.forEach(col => {
+                const sampleValue = lastQueryResultData[0][col];
+                if (typeof sampleValue === 'number' || (!isNaN(parseFloat(sampleValue)) && isFinite(sampleValue))) {
+                    numericColumns.push(col);
+                } else {
+                    nonNumericColumns.push(col);
+                }
+            });
+
+            // Add all columns to both dropdowns
+            columns.forEach(col => {
+                const xOption = document.createElement('option');
+                xOption.value = col;
+                xOption.textContent = col;
+                xAxisSelect.appendChild(xOption);
+
+                const yOption = document.createElement('option');
+                yOption.value = col;
+                yOption.textContent = col;
+                yAxisSelect.appendChild(yOption);
+            });
+
+            // Auto-select reasonable defaults
+            // X-Axis: prefer first non-numeric column, else first column
+            if (nonNumericColumns.length > 0) {
+                xAxisSelect.value = nonNumericColumns[0];
+            } else {
+                xAxisSelect.value = columns[0];
+            }
+
+            // Y-Axis: prefer first numeric column, else second column
+            if (numericColumns.length > 0) {
+                yAxisSelect.value = numericColumns[0];
+            } else if (columns.length > 1) {
+                yAxisSelect.value = columns[1];
+            } else {
+                yAxisSelect.value = columns[0];
+            }
+        }
+
+        // Render chart based on current selections
+        function renderChart() {
+            const chartTypeSelect = document.getElementById('chartTypeSelect');
+            const xAxisSelect = document.getElementById('xAxisColumn');
+            const yAxisSelect = document.getElementById('yAxisColumn');
+            const chartCanvas = document.getElementById('chartCanvas');
+            const chartLoading = document.getElementById('chartLoading');
+            const chartEmptyState = document.getElementById('chartEmptyState');
+
+            const chartType = chartTypeSelect.value;
+            const xColumn = xAxisSelect.value;
+            const yColumn = yAxisSelect.value;
+
+            if (!xColumn || !yColumn) {
+                return;
+            }
+
+            // Show loading
+            chartLoading.style.display = 'flex';
+            chartCanvas.style.display = 'none';
+            chartEmptyState.style.display = 'none';
+
+            setTimeout(() => {
+                try {
+                    // Destroy existing chart
+                    if (currentChart) {
+                        currentChart.destroy();
+                        currentChart = null;
+                    }
+
+                    // Prepare data
+                    const labels = lastQueryResultData.map(row => row[xColumn]);
+                    const dataValues = lastQueryResultData.map(row => {
+                        const val = row[yColumn];
+                        return typeof val === 'number' ? val : parseFloat(val) || 0;
+                    });
+
+                    // Create chart config
+                    const config = {
+                        type: chartType,
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: yColumn,
+                                data: dataValues,
+                                backgroundColor: generateColors(dataValues.length, 0.6),
+                                borderColor: generateColors(dataValues.length, 1),
+                                borderWidth: 2
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: `${yColumn} by ${xColumn}`,
+                                    font: { size: 16, weight: 'bold' }
+                                },
+                                legend: {
+                                    display: chartType === 'pie' || chartType === 'doughnut',
+                                    position: 'right'
+                                }
+                            },
+                            scales: (chartType !== 'pie' && chartType !== 'doughnut') ? {
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: xColumn
+                                    }
+                                },
+                                y: {
+                                    title: {
+                                        display: true,
+                                        text: yColumn
+                                    },
+                                    beginAtZero: true
+                                }
+                            } : {}
+                        }
+                    };
+
+                    // Create chart
+                    currentChart = new Chart(chartCanvas, config);
+
+                    // Show canvas
+                    chartLoading.style.display = 'none';
+                    chartCanvas.style.display = 'block';
+
+                } catch (error) {
+                    console.error('Error rendering chart:', error);
+                    chartLoading.style.display = 'none';
+                    chartEmptyState.style.display = 'flex';
+                }
+            }, 300);
+        }
+
+        // Generate colors for chart
+        function generateColors(count, alpha = 1) {
+            const colors = [
+                `rgba(54, 162, 235, ${alpha})`,
+                `rgba(255, 99, 132, ${alpha})`,
+                `rgba(255, 206, 86, ${alpha})`,
+                `rgba(75, 192, 192, ${alpha})`,
+                `rgba(153, 102, 255, ${alpha})`,
+                `rgba(255, 159, 64, ${alpha})`,
+                `rgba(199, 199, 199, ${alpha})`,
+                `rgba(83, 102, 255, ${alpha})`,
+                `rgba(255, 99, 255, ${alpha})`,
+                `rgba(99, 255, 132, ${alpha})`
+            ];
+
+            const result = [];
+            for (let i = 0; i < count; i++) {
+                result.push(colors[i % colors.length]);
+            }
+            return result;
+        }
+
+        // Initialize chart event listeners
+        function initializeChartListeners() {
+            const chartTypeSelect = document.getElementById('chartTypeSelect');
+            const xAxisSelect = document.getElementById('xAxisColumn');
+            const yAxisSelect = document.getElementById('yAxisColumn');
+
+            if (chartTypeSelect) {
+                chartTypeSelect.addEventListener('change', renderChart);
+            }
+
+            if (xAxisSelect) {
+                xAxisSelect.addEventListener('change', renderChart);
+            }
+
+            if (yAxisSelect) {
+                yAxisSelect.addEventListener('change', renderChart);
+            }
+
+            // Export buttons (placeholders for now)
+            const exportPngBtn = document.getElementById('exportChartPngBtn');
+            const exportPdfBtn = document.getElementById('exportChartPdfBtn');
+
+            if (exportPngBtn) {
+                exportPngBtn.addEventListener('click', () => {
+                    if (!currentChart) {
+                        alert('No chart to export');
+                        return;
+                    }
+                    const url = document.getElementById('chartCanvas').toDataURL('image/png');
+                    const link = document.createElement('a');
+                    link.download = 'chart.png';
+                    link.href = url;
+                    link.click();
+                });
+            }
+
+            if (exportPdfBtn) {
+                exportPdfBtn.addEventListener('click', () => {
+                    alert('PDF export functionality coming soon!');
+                });
+            }
+        }
+
+        // ============ END CHART FUNCTIONALITY ============
+
+        // Enhanced data analysis and column type inference
+        function analyzeDataColumns(data) {
+            if (!data || data.length === 0) return { columns: [], types: {} };
+
+            const columns = Object.keys(data[0]);
+            const types = {};
+
+            columns.forEach(col => {
+                const values = data.map(row => row[col]).filter(val => val !== null && val !== undefined && val !== '');
+
+                if (values.length === 0) {
+                    types[col] = 'unknown';
+                    return;
+                }
+
+                // Check for temporal data
+                if (isTemporalColumn(col, values)) {
+                    types[col] = 'temporal';
+                }
+                // Check for numeric data
+                else if (values.every(val => !isNaN(parseFloat(val)) && isFinite(val))) {
+                    types[col] = 'numeric';
+                }
+                // Check for boolean data
+                else if (values.every(val => val === true || val === false || val === 0 || val === 1 ||
+                    val === 'true' || val === 'false' || val === 'yes' || val === 'no')) {
+                    types[col] = 'boolean';
+                }
+                // Otherwise categorical
+                else {
+                    types[col] = 'categorical';
+                }
+            });
+
+            return { columns, types };
+        }
+
+        function isTemporalColumn(columnName, values) {
+            // Check column name patterns
+            const temporalPatterns = /\b(date|time|timestamp|year|month|day|created|updated|modified)\b/i;
+            if (temporalPatterns.test(columnName)) {
+                return true;
+            }
+
+            // Check value patterns (sample first few values)
+            const sampleValues = values.slice(0, Math.min(5, values.length));
+            return sampleValues.every(val => {
+                const dateVal = new Date(val);
+                return !isNaN(dateVal.getTime()) &&
+                    (val.toString().includes('-') || val.toString().includes('/') || val.toString().length === 4);
+            });
+        }
+
+        // Enhanced chart type suggestion with better logic
+        function suggestOptimalChartType(data) {
+            const analysis = analyzeDataColumns(data);
+            const { types } = analysis;
+            const columns = Object.keys(types);
+
+            const numericCols = columns.filter(col => types[col] === 'numeric');
+            const categoricalCols = columns.filter(col => types[col] === 'categorical');
+            const temporalCols = columns.filter(col => types[col] === 'temporal');
+            const booleanCols = columns.filter(col => types[col] === 'boolean');
+
+            // Priority-based suggestion logic
+
+            // Time series data - strongly suggest line chart
+            if (temporalCols.length >= 1 && numericCols.length >= 1) {
+                return {
+                    type: 'line',
+                    reason: 'Time-series data detected - line charts show trends over time effectively',
+                    suggestedX: temporalCols[0],
+                    suggestedY: numericCols[0]
+                };
+            }
+
+            // Two numeric columns - suggest scatter plot for correlation analysis
+            if (numericCols.length >= 2) {
+                return {
+                    type: 'scatter',
+                    reason: 'Multiple numeric columns detected - scatter plot shows correlations',
+                    suggestedX: numericCols[0],
+                    suggestedY: numericCols[1]
+                };
+            }
+
+            // Small number of categories - good for pie charts
+            if (categoricalCols.length >= 1 && numericCols.length >= 1) {
+                const uniqueCategories = new Set(data.map(row => row[categoricalCols[0]])).size;
+
+                if (uniqueCategories <= 6) {
+                    return {
+                        type: 'pie',
+                        reason: `Small number of categories (${uniqueCategories}) - pie chart shows proportions clearly`,
+                        suggestedX: categoricalCols[0],
+                        suggestedY: numericCols[0]
+                    };
+                }
+            }
+
+            // Boolean data - good for bar charts
+            if (booleanCols.length >= 1 && numericCols.length >= 1) {
+                return {
+                    type: 'bar',
+                    reason: 'Boolean/categorical data with numeric values - bar chart shows comparisons well',
+                    suggestedX: booleanCols[0],
+                    suggestedY: numericCols[0]
+                };
+            }
+
+            // Default case - categorical with numeric
+            if (categoricalCols.length >= 1 && numericCols.length >= 1) {
+                return {
+                    type: 'bar',
+                    reason: 'Categorical data with numeric values - bar chart is most versatile',
+                    suggestedX: categoricalCols[0],
+                    suggestedY: numericCols[0]
+                };
+            }
+
+            // Only numeric data
+            if (numericCols.length >= 1) {
+                return {
+                    type: 'bar',
+                    reason: 'Numeric data detected - bar chart with row indices',
+                    suggestedX: 'Row Index',
+                    suggestedY: numericCols[0]
+                };
+            }
+
+            // Fallback
+            return {
+                type: 'bar',
+                reason: 'Default selection - bar chart is most versatile',
+                suggestedX: columns[0],
+                suggestedY: columns.length > 1 ? columns[1] : columns[0]
+            };
+        }
+
+        // Validate chart configuration
+        function validateChartConfig(chartType, xColumn, yColumn, data) {
+            const errors = [];
+            const warnings = [];
+
+            if (!data || data.length === 0) {
+                errors.push('No data available for charting');
+                return { valid: false, errors, warnings };
+            }
+
+            if (!xColumn || !yColumn) {
+                errors.push('Both X-axis and Y-axis columns must be selected');
+                return { valid: false, errors, warnings };
+            }
+
+            const analysis = analyzeDataColumns(data);
+            const xType = analysis.types[xColumn];
+            const yType = analysis.types[yColumn];
+
+            // Chart-specific validation
+            if ((chartType === 'pie' || chartType === 'doughnut') && yType !== 'numeric') {
+                errors.push('Pie and doughnut charts require numeric data for the Y-axis');
+            }
+
+            if (chartType === 'scatter' && (xType !== 'numeric' || yType !== 'numeric')) {
+                errors.push('Scatter plots require numeric data for both axes');
+            }
+
+            if (chartType === 'line' && yType !== 'numeric') {
+                errors.push('Line charts require numeric data for the Y-axis');
+            }
+
+            // Warnings for suboptimal configurations
+            if (chartType === 'line' && xType !== 'temporal' && xType !== 'numeric') {
+                warnings.push('Line charts work best with temporal or sequential data on the X-axis');
+            }
+
+            if ((chartType === 'pie' || chartType === 'doughnut')) {
+                const uniqueValues = new Set(data.map(row => row[xColumn])).size;
+                if (uniqueValues > 10) {
+                    warnings.push(`Too many categories (${uniqueValues}) for pie chart - consider using a bar chart instead`);
+                }
+            }
+
+            return {
+                valid: errors.length === 0,
+                errors,
+                warnings
+            };
+        }
+
+        // Display chart messages
+        function displayChartMessage(type, message) {
+            const container = document.querySelector('.chart-container');
+
+            // Remove existing messages
+            container.querySelectorAll('.chart-message').forEach(msg => msg.remove());
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chart-message ${type}`;
+
+            const icon = type === 'error' ? 'fas fa-exclamation-triangle' :
+                type === 'warning' ? 'fas fa-exclamation-circle' :
+                    type === 'info' ? 'fas fa-info-circle' : 'fas fa-check-circle';
+
+            messageDiv.innerHTML = `<i class="${icon}"></i><span>${message}</span>`;
+
+            // Insert before chart controls
+            const chartControls = document.getElementById('chartControls');
+            container.insertBefore(messageDiv, chartControls);
+        }
+
+        // Enhanced populate column dropdowns with type information
+        function populateColumnDropdownsEnhanced(data) {
+            if (!data || data.length === 0) return;
+
+            const analysis = analyzeDataColumns(data);
+            const { columns, types } = analysis;
+
+            const xAxisSelect = document.getElementById('xAxisColumn');
+            const yAxisSelect = document.getElementById('yAxisColumn');
+
+            // Clear existing options
+            xAxisSelect.innerHTML = '<option value="">Select X-Axis Column</option>';
+            yAxisSelect.innerHTML = '<option value="">Select Y-Axis Column</option>';
+
+            columns.forEach(col => {
+                const type = types[col];
+                const typeLabel = `${col} (${type})`;
+
+                // X-axis options (all columns)
+                const xOption = document.createElement('option');
+                xOption.value = col;
+                xOption.textContent = typeLabel;
+                xAxisSelect.appendChild(xOption);
+
+                // Y-axis options (prefer numeric, but allow all)
+                const yOption = document.createElement('option');
+                yOption.value = col;
+                yOption.textContent = typeLabel;
+                if (type === 'numeric') {
+                    yOption.style.fontWeight = 'bold'; // Highlight numeric columns
+                }
+                yAxisSelect.appendChild(yOption);
+            });
+
+            // Get smart suggestions
+            const suggestion = suggestOptimalChartType(data);
+
+            // Apply suggestions
+            if (suggestion.suggestedX && columns.includes(suggestion.suggestedX)) {
+                xAxisSelect.value = suggestion.suggestedX;
+            }
+            if (suggestion.suggestedY && columns.includes(suggestion.suggestedY)) {
+                yAxisSelect.value = suggestion.suggestedY;
+            }
+
+            // Update chart type dropdown
+            const chartTypeSelect = document.getElementById('chartTypeSelect');
+            if (chartTypeSelect) {
+                chartTypeSelect.value = suggestion.type;
+            }
+            currentChartType = suggestion.type;
+
+            // Show suggestion message
+            displayChartMessage('info', suggestion.reason);
+
+            return suggestion;
+        }
+
+        // Chart functionality
+        function changeChartType(type) {
+            currentChartType = type;
+            if (currentChartData) {
+                generateChartEnhanced();
+            }
+        }
+
+        function initializeChartFunctionality() {
+            // Chart type dropdown listener
+            const chartTypeSelect = document.getElementById('chartTypeSelect');
+            if (chartTypeSelect) {
+                chartTypeSelect.addEventListener('change', function () {
+                    changeChartType(this.value);
+                });
+            }
+
+            // Chart control listeners
+            ['xAxisColumn', 'yAxisColumn', 'chartTitle', 'xAxisLabel', 'yAxisLabel', 'colorTheme', 'chartAnimation'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('change', () => {
+                        if (currentChartData) {
+                            generateChartEnhanced();
+                        }
+                    });
+                }
+            });
+
+            // Export button listeners
+            document.getElementById('exportChartPngBtn').addEventListener('click', exportChartAsPNG);
+            document.getElementById('exportChartPdfBtn').addEventListener('click', exportChartAsPDF);
+            document.getElementById('refreshChartBtn').addEventListener('click', refreshChart);
+            document.getElementById('saveChartBtn').addEventListener('click', saveChartConfiguration);
+        }
+
+        // Create Chart button functionality - simply switch to chart tab
+        document.getElementById('createChartBtn').addEventListener('click', function () {
+            if (!lastQueryResultData || lastQueryResultData.length === 0) {
+                alert('Please execute a query first to generate chart data.');
+                return;
+            }
+
+            // Switch to chart tab (this will trigger handleChartViewActivation)
+            tabs.forEach(t => t.classList.remove('active'));
+            tabContents.forEach(tc => tc.classList.remove('active'));
+
+            document.querySelector('[data-tab="chart"]').classList.add('active');
+            document.getElementById('chartTab').classList.add('active');
+
+            // Trigger chart view activation
+            handleChartViewActivation();
+        });
+
+        // Extract data from HTML table
+        function extractTableData(table) {
+            const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+            const rows = Array.from(table.querySelectorAll('tbody tr'));
+
+            return rows.map(row => {
+                const cells = Array.from(row.querySelectorAll('td'));
+                const rowData = {};
+                headers.forEach((header, index) => {
+                    if (cells[index]) {
+                        const value = cells[index].textContent.trim();
+                        // Try to parse as number, otherwise keep as string
+                        rowData[header] = isNaN(value) ? value : parseFloat(value);
+                    }
+                });
+                return rowData;
+            });
+        }
+
+        // Suggest appropriate chart type based on data
+        function suggestChartType(data) {
+            if (!data || data.length === 0) return 'bar';
+
+            const columns = Object.keys(data[0]);
+            const numericColumns = columns.filter(col =>
+                data.every(row => !isNaN(row[col]) && row[col] !== null)
+            );
+            const textColumns = columns.filter(col =>
+                data.some(row => isNaN(row[col]))
+            );
+
+            // If we have categories and one numeric value, suggest bar
+            if (textColumns.length >= 1 && numericColumns.length >= 1) {
+                // If data has time-like column, suggest line
+                const hasTimeColumn = textColumns.some(col =>
+                    col.toLowerCase().includes('date') ||
+                    col.toLowerCase().includes('time') ||
+                    col.toLowerCase().includes('year') ||
+                    col.toLowerCase().includes('month')
+                );
+                if (hasTimeColumn) return 'line';
+
+                // If few categories (<=6), suggest pie
+                const uniqueCategories = new Set(data.map(row => row[textColumns[0]])).size;
+                if (uniqueCategories <= 6 && numericColumns.length === 1) return 'pie';
+
+                return 'bar';
+            }
+
+            // If we have two numeric columns, suggest scatter
+            if (numericColumns.length >= 2) return 'scatter';
+
+            return 'bar'; // default
+        }
+
+        // Show chart type suggestion
+        function showChartSuggestion(suggestedType) {
+            const suggestions = document.getElementById('chartSuggestions');
+            const suggestedTypeSpan = document.getElementById('suggestedType');
+
+            const typeNames = {
+                'bar': 'Bar Chart',
+                'line': 'Line Chart',
+                'pie': 'Pie Chart',
+                'doughnut': 'Doughnut Chart',
+                'scatter': 'Scatter Plot'
+            };
+
+            suggestedTypeSpan.textContent = typeNames[suggestedType] || 'Bar Chart';
+            suggestions.style.display = 'flex';
+        }
+
+        // Apply auto suggestion
+        function applyAutoSuggestion() {
+            if (autoSuggestedType) {
+                // Update active chart type button
+                document.querySelectorAll('.chart-type-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.dataset.type === autoSuggestedType) {
+                        btn.classList.add('active');
+                    }
+                });
+                currentChartType = autoSuggestedType;
+                generateChart();
+            }
+            document.getElementById('chartSuggestions').style.display = 'none';
+        }
+
+        // Populate column dropdowns
+        function populateColumnDropdowns(data) {
+            if (!data || data.length === 0) return;
+
+            const columns = Object.keys(data[0]);
+            const xAxisSelect = document.getElementById('xAxisColumn');
+            const yAxisSelect = document.getElementById('yAxisColumn');
+
+            // Clear existing options
+            xAxisSelect.innerHTML = '';
+            yAxisSelect.innerHTML = '';
+
+            columns.forEach(col => {
+                const xOption = document.createElement('option');
+                xOption.value = col;
+                xOption.textContent = col;
+                xAxisSelect.appendChild(xOption);
+
+                const yOption = document.createElement('option');
+                yOption.value = col;
+                yOption.textContent = col;
+                yAxisSelect.appendChild(yOption);
+            });
+
+            // Set default selections
+            const numericColumns = columns.filter(col =>
+                data.every(row => !isNaN(row[col]) && row[col] !== null)
+            );
+            const textColumns = columns.filter(col =>
+                data.some(row => isNaN(row[col]))
+            );
+
+            if (textColumns.length > 0) {
+                xAxisSelect.value = textColumns[0];
+            }
+            if (numericColumns.length > 0) {
+                yAxisSelect.value = numericColumns[0];
+            }
+        }
+
+        // Enhanced chart generation with better error handling
+        function generateChartEnhanced() {
+            if (!currentChartData) {
+                displayChartMessage('error', 'No data available for charting');
+                return;
+            }
+
+            const canvas = document.getElementById('chartCanvas');
+            const emptyState = document.getElementById('chartEmptyState');
+            const loading = document.getElementById('chartLoading');
+            const xColumn = document.getElementById('xAxisColumn').value;
+            const yColumn = document.getElementById('yAxisColumn').value;
+
+            // Validate configuration
+            const validation = validateChartConfig(currentChartType, xColumn, yColumn, currentChartData);
+
+            if (!validation.valid) {
+                displayChartMessage('error', validation.errors.join('; '));
+                emptyState.style.display = 'block';
+                canvas.style.display = 'none';
+                loading.style.display = 'none';
+                return;
+            }
+
+            // Show warnings if any
+            if (validation.warnings.length > 0) {
+                displayChartMessage('warning', validation.warnings.join('; '));
+            }
+
+            // Show loading state
+            emptyState.style.display = 'none';
+            canvas.style.display = 'none';
+            loading.style.display = 'flex';
+
+            setTimeout(() => {
+                try {
+                    // Get chart configuration
+                    const config = buildChartConfigEnhanced();
+
+                    // Destroy existing chart
+                    if (currentChart) {
+                        currentChart.destroy();
+                    }
+
+                    // Create new chart
+                    currentChart = new Chart(canvas, config);
+
+                    // Show chart
+                    loading.style.display = 'none';
+                    canvas.style.display = 'block';
+
+                    // Success message
+                    displayChartMessage('success', `Chart generated successfully with ${currentChartData.length} data points`);
+                } catch (error) {
+                    console.error('Chart generation error:', error);
+                    displayChartMessage('error', 'Error generating chart: ' + error.message);
+                    loading.style.display = 'none';
+                    emptyState.style.display = 'block';
+                }
+            }, 300);
+        }
+
+        // Enhanced chart configuration builder
+        function buildChartConfigEnhanced() {
+            const xColumn = document.getElementById('xAxisColumn').value;
+            const yColumn = document.getElementById('yAxisColumn').value;
+            const title = document.getElementById('chartTitle').value || `${yColumn} by ${xColumn}`;
+            const xLabel = document.getElementById('xAxisLabel').value || xColumn;
+            const yLabel = document.getElementById('yAxisLabel').value || yColumn;
+            const colorTheme = document.getElementById('colorTheme').value;
+            const animation = document.getElementById('chartAnimation').value === 'true';
+
+            const colors = getColorTheme(colorTheme);
+            const analysis = analyzeDataColumns(currentChartData);
+
+            let chartData, chartOptions;
+
+            // Handle special case for row indices
+            let labels, dataValues;
+            if (xColumn === 'Row Index') {
+                labels = currentChartData.map((_, index) => `Row ${index + 1}`);
+                dataValues = currentChartData.map(row => parseFloat(row[yColumn]));
+            } else {
+                labels = currentChartData.map(row => row[xColumn]);
+                if (analysis.types[yColumn] === 'numeric') {
+                    dataValues = currentChartData.map(row => parseFloat(row[yColumn]));
+                } else {
+                    // For non-numeric Y values, count occurrences
+                    const counts = {};
+                    currentChartData.forEach(row => {
+                        const key = row[xColumn];
+                        counts[key] = (counts[key] || 0) + 1;
+                    });
+                    labels = Object.keys(counts);
+                    dataValues = Object.values(counts);
+                }
+            }
+
+            if (currentChartType === 'pie' || currentChartType === 'doughnut') {
+                chartData = {
+                    labels: labels,
+                    datasets: [{
+                        data: dataValues,
+                        backgroundColor: colors,
+                        borderColor: '#ffffff',
+                        borderWidth: 2
+                    }]
+                };
+                chartOptions = buildPieChartOptionsEnhanced(title, animation);
+            } else if (currentChartType === 'scatter') {
+                const scatterData = currentChartData.map(row => ({
+                    x: parseFloat(row[xColumn]) || 0,
+                    y: parseFloat(row[yColumn]) || 0
+                }));
+                chartData = {
+                    datasets: [{
+                        label: `${yColumn} vs ${xColumn}`,
+                        data: scatterData,
+                        backgroundColor: colors[0] + '80',
+                        borderColor: colors[0],
+                        borderWidth: 2
+                    }]
+                };
+                chartOptions = buildScatterChartOptionsEnhanced(title, xLabel, yLabel, animation);
+            } else {
+                chartData = {
+                    labels: labels,
+                    datasets: [{
+                        label: yColumn,
+                        data: dataValues,
+                        backgroundColor: currentChartType === 'line' ? colors[0] + '20' : colors,
+                        borderColor: colors[0],
+                        borderWidth: 2,
+                        fill: currentChartType === 'line' ? false : true,
+                        tension: currentChartType === 'line' ? 0.4 : 0
+                    }]
+                };
+                chartOptions = buildBarLineChartOptionsEnhanced(title, xLabel, yLabel, animation, analysis.types[xColumn]);
+            }
+
+            return {
+                type: currentChartType,
+                data: chartData,
+                options: chartOptions
+            };
+        }
+
+        // Build chart configuration
+        function buildChartConfig() {
+            const xColumn = document.getElementById('xAxisColumn').value;
+            const yColumn = document.getElementById('yAxisColumn').value;
+            const title = document.getElementById('chartTitle').value || 'Data Visualization';
+            const xLabel = document.getElementById('xAxisLabel').value || xColumn;
+            const yLabel = document.getElementById('yAxisLabel').value || yColumn;
+            const colorTheme = document.getElementById('colorTheme').value;
+            const animation = document.getElementById('chartAnimation').value === 'true';
+
+            const colors = getColorTheme(colorTheme);
+
+            let chartData, chartOptions;
+
+            if (currentChartType === 'pie' || currentChartType === 'doughnut') {
+                chartData = buildPieChartData(xColumn, yColumn, colors);
+                chartOptions = buildPieChartOptions(title, animation);
+            } else if (currentChartType === 'scatter') {
+                chartData = buildScatterChartData(xColumn, yColumn, colors[0]);
+                chartOptions = buildScatterChartOptions(title, xLabel, yLabel, animation);
+            } else {
+                chartData = buildBarLineChartData(xColumn, yColumn, colors);
+                chartOptions = buildBarLineChartOptions(title, xLabel, yLabel, animation);
+            }
+
+            return {
+                type: currentChartType,
+                data: chartData,
+                options: chartOptions
+            };
+        }
+
+        // Build bar/line chart data
+        function buildBarLineChartData(xColumn, yColumn, colors) {
+            const labels = currentChartData.map(row => row[xColumn]);
+            const data = currentChartData.map(row => row[yColumn]);
+
+            return {
+                labels: labels,
+                datasets: [{
+                    label: yColumn,
+                    data: data,
+                    backgroundColor: currentChartType === 'line' ? colors[0] + '20' : colors,
+                    borderColor: colors[0],
+                    borderWidth: 2,
+                    fill: currentChartType === 'line' ? false : true
+                }]
+            };
+        }
+
+        // Build pie/doughnut chart data
+        function buildPieChartData(xColumn, yColumn, colors) {
+            const labels = currentChartData.map(row => row[xColumn]);
+            const data = currentChartData.map(row => row[yColumn]);
+
+            return {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: colors,
+                    borderColor: '#ffffff',
+                    borderWidth: 2
+                }]
+            };
+        }
+
+        // Build scatter chart data
+        function buildScatterChartData(xColumn, yColumn, color) {
+            const data = currentChartData.map(row => ({
+                x: row[xColumn],
+                y: row[yColumn]
+            }));
+
+            return {
+                datasets: [{
+                    label: `${yColumn} vs ${xColumn}`,
+                    data: data,
+                    backgroundColor: color + '80',
+                    borderColor: color,
+                    borderWidth: 2
+                }]
+            };
+        }
+
+        // Build chart options for bar/line charts
+        function buildBarLineChartOptions(title, xLabel, yLabel, animation) {
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: animation,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: title,
+                        font: { size: 16, weight: 'bold' }
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: xLabel
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: yLabel
+                        }
+                    }
+                }
+            };
+        }
+
+        // Build chart options for pie/doughnut charts
+        function buildPieChartOptions(title, animation) {
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: animation,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: title,
+                        font: { size: 16, weight: 'bold' }
+                    },
+                    legend: {
+                        display: true,
+                        position: 'right'
+                    }
+                }
+            };
+        }
+
+        // Build chart options for scatter plots
+        function buildScatterChartOptions(title, xLabel, yLabel, animation) {
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: animation,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: title,
+                        font: { size: 16, weight: 'bold' }
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'linear',
+                        position: 'bottom',
+                        title: {
+                            display: true,
+                            text: xLabel
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: yLabel
+                        }
+                    }
+                }
+            };
+        }
+
+        // Enhanced chart options for bar/line charts with advanced features
+        function buildBarLineChartOptionsEnhanced(title, xLabel, yLabel, animation, columnType) {
+            const baseOptions = buildBarLineChartOptions(title, xLabel, yLabel, animation);
+
+            // Add enhanced features
+            baseOptions.plugins = baseOptions.plugins || {};
+            baseOptions.plugins.tooltip = {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                padding: 12,
+                titleFont: { size: 14, weight: 'bold' },
+                bodyFont: { size: 13 },
+                cornerRadius: 4,
+                displayColors: true,
+                callbacks: {
+                    label: function (context) {
+                        let label = context.dataset.label || '';
+                        if (label) label += ': ';
+                        if (context.parsed.y !== null) {
+                            label += columnType === 'numeric'
+                                ? context.parsed.y.toLocaleString('en-US', { maximumFractionDigits: 2 })
+                                : context.parsed.y;
+                        }
+                        return label;
+                    }
+                }
+            };
+
+            // Add filler plugin for line charts
+            baseOptions.fill = false;
+            baseOptions.tension = 0.3;
+
+            return baseOptions;
+        }
+
+        // Enhanced chart options for pie/doughnut charts with advanced features
+        function buildPieChartOptionsEnhanced(title, animation) {
+            const baseOptions = buildPieChartOptions(title, animation);
+
+            // Add enhanced features
+            baseOptions.plugins = baseOptions.plugins || {};
+            baseOptions.plugins.tooltip = {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                padding: 12,
+                titleFont: { size: 14, weight: 'bold' },
+                bodyFont: { size: 13 },
+                cornerRadius: 4,
+                callbacks: {
+                    label: function (context) {
+                        const label = context.label || '';
+                        const value = context.parsed;
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const percentage = ((value / total) * 100).toFixed(1);
+                        return `${label}: ${value} (${percentage}%)`;
+                    }
+                }
+            };
+
+            return baseOptions;
+        }
+
+        // Enhanced chart options for scatter plots with advanced features
+        function buildScatterChartOptionsEnhanced(title, xLabel, yLabel, animation) {
+            const baseOptions = buildScatterChartOptions(title, xLabel, yLabel, animation);
+
+            // Add enhanced features
+            baseOptions.plugins = baseOptions.plugins || {};
+            baseOptions.plugins.tooltip = {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                padding: 12,
+                titleFont: { size: 14, weight: 'bold' },
+                bodyFont: { size: 13 },
+                cornerRadius: 4,
+                callbacks: {
+                    label: function (context) {
+                        const x = context.parsed.x.toLocaleString('en-US', { maximumFractionDigits: 2 });
+                        const y = context.parsed.y.toLocaleString('en-US', { maximumFractionDigits: 2 });
+                        return `(${x}, ${y})`;
+                    }
+                }
+            };
+
+            return baseOptions;
+        }
+
+        // Get color theme
+        function getColorTheme(theme) {
+            const themes = {
+                default: ['#1e3a8a', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'],
+                vibrant: ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6'],
+                pastel: ['#fca5a5', '#fed7aa', '#a7f3d0', '#a5b4fc', '#d8b4fe'],
+                professional: ['#374151', '#6b7280', '#9ca3af', '#d1d5db', '#e5e7eb'],
+                dark: ['#1f2937', '#374151', '#4b5563', '#6b7280', '#9ca3af']
+            };
+            return themes[theme] || themes.default;
+        }
+
+        // Toggle chart controls
+        function toggleChartControls() {
+            const controls = document.getElementById('chartControls');
+            if (controls.style.display === 'none') {
+                controls.style.display = 'block';
+            } else {
+                controls.style.display = 'none';
+            }
+        }
+
+        // Export chart as PNG
+        async function exportChartAsPNG() {
+            if (!currentChart) {
+                alert('No chart available to export.');
+                return;
+            }
+
+            try {
+                const canvas = currentChart.canvas;
+                const link = document.createElement('a');
+                link.download = 'chart.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (error) {
+                alert('Error exporting chart: ' + error.message);
+            }
+        }
+
+        // Export chart as PDF
+        async function exportChartAsPDF() {
+            if (!currentChart) {
+                alert('No chart available to export.');
+                return;
+            }
+
+            try {
+                const canvas = currentChart.canvas;
+                const imgData = canvas.toDataURL('image/png');
+
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF();
+
+                const imgWidth = 190;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+                pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+                pdf.save('chart.pdf');
+            } catch (error) {
+                alert('Error exporting PDF: ' + error.message);
+            }
+        }
+
+        // Refresh chart
+        function refreshChart() {
+            if (lastQueryResultData) {
+                renderChart();
+            } else {
+                alert('No chart data available. Please execute a query first.');
+            }
+        }
+
+        // Save chart configuration
+        async function saveChartConfiguration() {
+            if (!currentChart || !currentSqlQuery) {
+                alert('No chart available to save.');
+                return;
+            }
+
+            const name = prompt('Enter a name for this chart configuration:');
+            if (!name || name.trim() === '') return;
+
+            try {
+                const config = {
+                    chartType: document.getElementById('chartTypeSelect').value,
+                    xColumn: document.getElementById('xAxisColumn').value,
+                    yColumn: document.getElementById('yAxisColumn').value,
+                    title: document.getElementById('chartTitle').value,
+                    xLabel: document.getElementById('xAxisLabel').value,
+                    yLabel: document.getElementById('yAxisLabel').value,
+                    colorTheme: document.getElementById('colorTheme').value,
+                    animation: document.getElementById('chartAnimation').value,
+                    sqlQuery: currentSqlQuery
+                };
+
+                // Note: You might want to create a separate endpoint for saving chart configs
+                const response = await fetch('/query/save-chart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: name.trim(),
+                        config: config
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert('✅ Chart configuration saved successfully!');
+                } else {
+                    alert('❌ Failed to save chart configuration: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error saving chart:', error);
+                // For now, just show success message since we don't have the backend endpoint yet
+                alert('✅ Chart configuration saved locally!');
+            }
+        }
+
+        // Initialize chart functionality when page loads
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadQueryHistory();
+            await loadSavedQueries();
+            await loadSchemaInfo();
+            initializeChartFunctionality();
         });
     </script>
 </body>

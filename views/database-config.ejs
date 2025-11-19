@@ -5,6 +5,16 @@
     <title>Configure Database</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary-blue: #1e3a8a;
+            --primary-blue-dark: #1e40af;
+            --neutral-50: #f9fafb;
+            --neutral-100: #f3f4f6;
+            --neutral-200: #e5e7eb;
+            --neutral-700: #374151;
+            --neutral-800: #1f2937;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,8 +22,8 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -32,12 +42,12 @@
             justify-content: space-between;
             margin-bottom: 30px;
             padding-bottom: 20px;
-            border-bottom: 2px solid #f0f0f0;
+            border-bottom: 2px solid var(--neutral-100);
         }
 
         .nav a {
             text-decoration: none;
-            color: #667eea;
+            color: var(--primary-blue);
             font-weight: 600;
             transition: all 0.3s;
             display: flex;
@@ -46,11 +56,11 @@
         }
 
         .nav a:hover {
-            color: #764ba2;
+            color: var(--primary-blue-dark);
         }
 
         h1 {
-            color: #2c3e50;
+            color: var(--neutral-800);
             margin-bottom: 10px;
             font-size: 32px;
             display: flex;
@@ -59,7 +69,7 @@
         }
 
         .subtitle {
-            color: #7f8c8d;
+            color: var(--neutral-700);
             margin-bottom: 30px;
         }
 
@@ -70,7 +80,7 @@
         label {
             display: block;
             margin-bottom: 8px;
-            color: #2c3e50;
+            color: var(--neutral-800);
             font-weight: 600;
             font-size: 14px;
         }
@@ -82,26 +92,28 @@
         textarea {
             width: 100%;
             padding: 12px 15px;
-            border: 2px solid #e1e8ed;
+            border: 2px solid var(--neutral-200);
             border-radius: 10px;
             font-size: 14px;
             font-family: inherit;
             transition: all 0.3s;
+            color: var(--neutral-800);
         }
 
         select:focus,
         input:focus,
         textarea:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
         }
 
         .credential-fields {
             margin-top: 25px;
             padding: 25px;
-            background: #f8f9fa;
+            background: var(--neutral-50);
             border-radius: 15px;
-            border: 2px solid #e1e8ed;
+            border: 2px solid var(--neutral-200);
         }
 
         .hidden {
@@ -109,27 +121,31 @@
         }
 
         .submit-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
             color: white;
             padding: 15px 40px;
             border: none;
-            border-radius: 50px;
+            border-radius: 10px;
             cursor: pointer;
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 700;
             margin-top: 25px;
             width: 100%;
             transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 15px rgba(30, 58, 138, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
         .submit-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+            box-shadow: 0 6px 20px rgba(30, 58, 138, 0.6);
         }
 
         .info-text {
-            color: #7f8c8d;
+            color: var(--neutral-700);
             font-size: 12px;
             margin-top: 5px;
         }
@@ -137,7 +153,7 @@
         .db-icon {
             width: 40px;
             height: 40px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
             border-radius: 10px;
             display: inline-flex;
             align-items: center;

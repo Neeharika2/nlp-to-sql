@@ -8,6 +8,7 @@ const { createClient } = require('@supabase/supabase-js');
 const SecurityValidator = require('../utils/security-validator');
 const auditLogger = require('../utils/audit-logger');
 const { columnSecurity } = require('../config/security-config');
+const queryHistoryManager = require('../models/query-history');
 
 // Middleware to check if user is authenticated
 const authCheck = (req, res, next) => {
@@ -105,6 +106,16 @@ router.post('/execute', authCheck, async (req, res) => {
     // Execute the sanitized query (async with timeout)
     const results = await executeQueryWithTimeout(sanitizedQuery, dbType, dbConfig, selectedDatabase, 30000);
     
+    // Add to query history
+    queryHistoryManager.addToHistory(req.user.id, {
+      nlQuery: nlQuery,
+      sqlQuery: sanitizedQuery,
+      database: selectedDatabase,
+      dbType: dbType,
+      success: true,
+      rowsReturned: results.length
+    });
+    
     // Log successful query
     await auditLogger.logQueryAttempt({
       userId: req.user.id,
@@ -130,6 +141,16 @@ router.post('/execute', authCheck, async (req, res) => {
     });
   } catch (error) {
     console.error('Query execution error:', error);
+    
+    // Add failed query to history
+    queryHistoryManager.addToHistory(req.user.id, {
+      nlQuery: nlQuery,
+      sqlQuery: sanitizedQuery || originalSqlQuery,
+      database: selectedDatabase,
+      dbType: dbType,
+      success: false,
+      rowsReturned: 0
+    });
     
     // Log error
     await auditLogger.logQueryAttempt({
@@ -161,6 +182,164 @@ router.get('/audit-history', authCheck, async (req, res) => {
     res.json({ success: false, error: error.message });
   }
 });
+
+// Get query history
+router.get('/history', authCheck, async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 20;
+    const history = queryHistoryManager.getHistory(req.user.id, limit);
+    res.json({ success: true, history });
+  } catch (error) {
+    res.json({ success: false, error: error.message });
+  }
+});
+
+// Save a query
+router.post('/save', authCheck, async (req, res) => {
+  try {
+    const { name, nlQuery, sqlQuery } = req.body;
+    
+    if (!name || !nlQuery || !sqlQuery) {
+      return res.json({ success: false, error: 'Missing required fields' });
+    }
+
+    const savedQuery = queryHistoryManager.saveQuery(req.user.id, {
+      name,
+      nlQuery,
+      sqlQuery,
+      database: req.session.selectedDatabase,
+      dbType: req.session.dbType,
+      tags: req.body.tags || []
+    });
+
+    res.json({ success: true, query: savedQuery });
+  } catch (error) {
+    res.json({ success: false, error: error.message });
+  }
+});
+
+// Get saved queries
+router.get('/saved', authCheck, async (req, res) => {
+  try {
+    const queries = queryHistoryManager.getSavedQueries(req.user.id);
+    res.json({ success: true, queries });
+  } catch (error) {
+    res.json({ success: false, error: error.message });
+  }
+});
+
+// Delete saved query
+router.delete('/saved/:id', authCheck, async (req, res) => {
+  try {
+    const deleted = queryHistoryManager.deleteSavedQuery(req.user.id, req.params.id);
+    res.json({ success: deleted });
+  } catch (error) {
+    res.json({ success: false, error: error.message });
+  }
+});
+
+// Update saved query name
+router.put('/saved/:id', authCheck, async (req, res) => {
+  try {
+    const { name } = req.body;
+    const updated = queryHistoryManager.updateQueryName(req.user.id, req.params.id, name);
+    res.json({ success: updated });
+  } catch (error) {
+    res.json({ success: false, error: error.message });
+  }
+});
+
+// Save chart configuration
+router.post('/save-chart', authCheck, async (req, res) => {
+  try {
+    const { name, config } = req.body;
+    
+    if (!name || !config) {
+      return res.json({ success: false, error: 'Missing required fields' });
+    }
+
+    const savedChart = queryHistoryManager.saveChart(req.user.id, {
+      name,
+      config,
+      database: req.session.selectedDatabase,
+      dbType: req.session.dbType
+    });
+
+    res.json({ success: true, chart: savedChart });
+  } catch (error) {
+    res.json({ success: false, error: error.message });
+  }
+});
+
+// Get saved charts
+router.get('/charts', authCheck, async (req, res) => {
+  try {
+    const charts = queryHistoryManager.getSavedCharts(req.user.id);
+    res.json({ success: true, charts });
+  } catch (error) {
+    res.json({ success: false, error: error.message });
+  }
+});
+
+// Get database schema information
+router.get('/schema', authCheck, async (req, res) => {
+  try {
+    const dbConfig = req.session.dbConfig;
+    const dbType = req.session.dbType;
+    const selectedDatabase = req.session.selectedDatabase;
+
+    if (!dbConfig || !dbType || !selectedDatabase) {
+      return res.json({ success: false, error: 'Database not configured' });
+    }
+
+    const schema = await getDatabaseSchema(dbType, dbConfig, selectedDatabase);
+    
+    // Parse schema into structured format
+    const parsedSchema = parseSchemaToJSON(schema, dbType);
+    
+    res.json({ success: true, schema: parsedSchema, raw: schema });
+  } catch (error) {
+    res.json({ success: false, error: error.message });
+  }
+});
+
+// Parse schema string into JSON format
+function parseSchemaToJSON(schemaText, dbType) {
+  const tables = [];
+  const lines = schemaText.split('\n');
+  let currentTable = null;
+
+  for (const line of lines) {
+    // Match table definitions
+    const tableMatch = line.match(/^(?:Table|Collection):\s+(.+)/);
+    if (tableMatch) {
+      if (currentTable) {
+        tables.push(currentTable);
+      }
+      currentTable = {
+        name: tableMatch[1].trim(),
+        columns: []
+      };
+      continue;
+    }
+
+    // Match column definitions
+    const columnMatch = line.match(/^\s+-\s+(\w+)\s+\(([^)]+)\)(.*)$/);
+    if (columnMatch && currentTable) {
+      currentTable.columns.push({
+        name: columnMatch[1],
+        type: columnMatch[2],
+        attributes: columnMatch[3].trim()
+      });
+    }
+  }
+
+  if (currentTable) {
+    tables.push(currentTable);
+  }
+
+  return tables;
+}
 
 // SQL Query Validation - Protection against dangerous operations
 function validateSQLQuery(sqlQuery, dbType) {
@@ -255,13 +434,13 @@ ${blockedColumns}
 These columns contain sensitive data and must NEVER be selected, filtered, or referenced in any way.
 
 ADDITIONAL INSTRUCTIONS:
-1.  **Exclude Sensitive Data**: Do NOT select or reference any of the blocked columns listed above, even if the user explicitly asks for them.
-2.  **Prefix Columns in JOINs**: When using a JOIN, ALWAYS prefix column names with the table name to prevent ambiguity (e.g., \`students.id\`, \`branches.name\`).
-3.  **Handle SELECT***: If selecting all columns, use \`table_name.*\` for each table, but the system will automatically filter out sensitive columns.
-4.  **Generate SQL Only**: Return ONLY the raw SQL query. Do not include explanations, markdown, or any text other than the SQL.
-5.  **Use Correct Syntax**: Use proper ${dbType.toUpperCase()} syntax.
-6.  **Limit Results**: For SELECT queries, limit results to 100 rows if no limit is specified.
-7.  **Safety First**: Do not generate any query that modifies data (no DROP, DELETE, UPDATE, INSERT, etc.). Only SELECT queries are allowed.
+1. Exclude Sensitive Data: Do NOT select or reference any of the blocked columns listed above, even if the user explicitly asks for them.
+2. Prefix Columns in JOINs: When using a JOIN, ALWAYS prefix column names with the table name to prevent ambiguity (e.g., \`students.id\`, \`branches.name\`).
+3. Handle SELECT: If selecting all columns, use \`table_name.*\` for each table, but the system will automatically filter out sensitive columns.
+4. Generate SQL Only: Return ONLY the raw SQL query. Do not include explanations, markdown, or any text other than the SQL.
+5. Use Correct Syntax: Use proper ${dbType.toUpperCase()} syntax.
+6. Limit Results: For SELECT queries, limit results to 100 rows if no limit is specified.
+7. Safety First: Do not generate any query that modifies data (no DROP, DELETE, UPDATE, INSERT, etc.). Only SELECT queries are allowed.
 
 SQL Query:`;
 
