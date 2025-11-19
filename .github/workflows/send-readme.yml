@@ -15,36 +15,37 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Read README and encode
+      - name: Encode README safely
         id: encode
         run: |
-          README_JSON=$(jq -Rs . < README.md)
-          echo "readme=$README_JSON" >> $GITHUB_OUTPUT
+          jq -Rs . < README.md > readme.json
+          echo "done=true" >> $GITHUB_OUTPUT
 
       - name: Send repository dispatch to portfolio
+        if: steps.encode.outputs.done == 'true'
         env:
           DISPATCH_TOKEN: ${{ secrets.PORTFOLIO_REPO_TOKEN }}
-          PORTFOLIO_REPO: "Neeharika2/portfolio"
+          PORTFOLIO_REPO: Neeharika2/portfolio
         run: |
-          PAYLOAD=$(jq -n \
+          jq -n \
             --arg owner "${{ github.repository_owner }}" \
             --arg repo "${{ github.event.repository.name }}" \
             --arg url "${{ github.event.repository.html_url }}" \
-            --arg readme "${{ steps.encode.outputs.readme }}" \
+            --slurpfile readme readme.json \
             '{
               event_type: "new_readme_received",
               client_payload: {
                 owner: $owner,
                 repo: $repo,
                 html_url: $url,
-                readme: $readme
+                readme: $readme[0]
               }
-            }')
+            }' > payload.json
 
           curl -X POST \
-            -H "Accept: application/vnd.github+json" \
             -H "Authorization: token $DISPATCH_TOKEN" \
-            "https://api.github.com/repos/$PORTFOLIO_REPO/dispatches" \
-            -d "$PAYLOAD"
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/$PORTFOLIO_REPO/dispatches \
+            -d @payload.json
