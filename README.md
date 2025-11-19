@@ -253,4 +253,3 @@ For issues, questions, or suggestions:
 
 ---
 
-**Built with ❤️ for making database queries accessible to everyone**
