@@ -1,0 +1,50 @@
+name: Send README to Portfolio
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "README.md"
+
+permissions:
+  contents: read
+
+jobs:
+  notify_portfolio:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read README and encode
+        id: encode
+        run: |
+          README_JSON=$(jq -Rs . < README.md)
+          echo "readme=$README_JSON" >> $GITHUB_OUTPUT
+
+      - name: Send repository dispatch to portfolio
+        env:
+          DISPATCH_TOKEN: ${{ secrets.PORTFOLIO_REPO_TOKEN }}
+          PORTFOLIO_REPO: "Neeharika2/portfolio"
+        run: |
+          PAYLOAD=$(jq -n \
+            --arg owner "${{ github.repository_owner }}" \
+            --arg repo "${{ github.event.repository.name }}" \
+            --arg url "${{ github.event.repository.html_url }}" \
+            --arg readme "${{ steps.encode.outputs.readme }}" \
+            '{
+              event_type: "new_readme_received",
+              client_payload: {
+                owner: $owner,
+                repo: $repo,
+                html_url: $url,
+                readme: $readme
+              }
+            }')
+
+          curl -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: token $DISPATCH_TOKEN" \
+            "https://api.github.com/repos/$PORTFOLIO_REPO/dispatches" \
+            -d "$PAYLOAD"
