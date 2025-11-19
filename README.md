@@ -16,14 +16,6 @@ A modern web application that converts natural language queries into SQL using A
 - **Real-time Updates**: Charts update instantly when changing visualization options
 - **Export Capabilities**: Download charts as PNG images
 
-### 🗄️ Multi-Database Support
-- **MySQL**
-- **PostgreSQL**
-- **Microsoft SQL Server**
-- **MongoDB**
-- **Supabase**
-- **Firebase**
-- **AWS RDS**
 
 ### 🎯 User-Friendly Interface
 - **Tab-Based Layout**: Separate views for Table Data, Charts, and SQL Query
