@@ -20,14 +20,25 @@ jobs:
       - name: Encode README safely
         id: encode
         run: |
-          jq -Rs . < README.md > readme.json
-          echo "done=true" >> $GITHUB_OUTPUT
+          encoded_readme=$(jq -Rs . < README.md)
+          echo "readme=$encoded_readme" >> "$GITHUB_OUTPUT"
 
       - name: Send repository dispatch to portfolio
-        if: steps.encode.outputs.done == 'true'
+        if: steps.encode.outputs.readme != ''
         env:
           DISPATCH_TOKEN: ${{ secrets.PORTFOLIO_REPO_TOKEN }}
           PORTFOLIO_REPO: Neeharika2/portfolio
+          README_JSON: ${{ steps.encode.outputs.readme }}
         run: |
-          jq -n --arg owner "${{ github.repository_owner }}" --arg repo "${{ github.event.repository.name }}" --arg url "${{ github.event.repository.html_url }}" --slurpfile readme readme.json '{"event_type":"new_readme_received","client_payload":{"owner":$owner,"repo":$repo,"html_url":$url,"readme":$readme[0]}}' > payload.json
-          curl -X POST -H "Authorization: token $DISPATCH_TOKEN" -H "Accept: application/vnd.github+json" https://api.github.com/repos/$PORTFOLIO_REPO/dispatches -d @payload.json
+          jq -n \
+            --arg owner "$GITHUB_REPOSITORY_OWNER" \
+            --arg repo "${{ github.event.repository.name }}" \
+            --arg url "${{ github.event.repository.html_url }}" \
+            --arg readme "$README_JSON" \
+            '{"event_type":"new_readme_received","client_payload":{"owner":$owner,"repo":$repo,"html_url":$url,"readme":$readme}}' > payload.json
+          
+          curl -X POST \
+            -H "Authorization: token $DISPATCH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/$PORTFOLIO_REPO/dispatches \
+            -d @payload.json
