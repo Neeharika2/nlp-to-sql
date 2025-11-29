@@ -34,15 +34,7 @@ jobs:
             --arg repo "${{ github.event.repository.name }}" \
             --arg url "${{ github.event.repository.html_url }}" \
             --slurpfile readme readme.json \
-            '{
-              event_type: "new_readme_received",
-              client_payload: {
-                owner: $owner,
-                repo: $repo,
-                html_url: $url,
-                readme: $readme[0]
-              }
-            }' > payload.json
+            '{"event_type":"new_readme_received","client_payload":{"owner":$owner,"repo":$repo,"html_url":$url,"readme":$readme[0]}}' > payload.json
 
           curl -X POST \
             -H "Authorization: token $DISPATCH_TOKEN" \
