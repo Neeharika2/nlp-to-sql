@@ -235,21 +235,5 @@ Contributions are welcome! Please follow these steps:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## License
-
-This project is licensed under the MIT License.
-
-## Support
-
-For issues, questions, or suggestions:
-- Open an issue on [GitHub](https://github.com/Neeharika2/nlp-to-sql/issues)
-- Contact: [Your Email]
-
-## Acknowledgments
-
-- Google Gemini AI for natural language processing
-- Chart.js for data visualization
-- All contributors and open-source libraries used in this project
-
 ---
 
