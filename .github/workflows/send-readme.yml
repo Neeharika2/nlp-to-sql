@@ -29,11 +29,14 @@ jobs:
           DISPATCH_TOKEN: ${{ secrets.PORTFOLIO_REPO_TOKEN }}
           PORTFOLIO_REPO: Neeharika2/portfolio
           README_JSON: ${{ steps.encode.outputs.readme }}
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ github.event.repository.name }}
+          URL: ${{ github.event.repository.html_url }}
         run: |
           jq -n \
-            --arg owner "$GITHUB_REPOSITORY_OWNER" \
-            --arg repo "${{ github.event.repository.name }}" \
-            --arg url "${{ github.event.repository.html_url }}" \
+            --arg owner "$OWNER" \
+            --arg repo "$REPO" \
+            --arg url "$URL" \
             --arg readme "$README_JSON" \
             '{"event_type":"new_readme_received","client_payload":{"owner":$owner,"repo":$repo,"html_url":$url,"readme":$readme}}' > payload.json
           
